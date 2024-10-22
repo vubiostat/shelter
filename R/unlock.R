@@ -42,16 +42,16 @@
  ## unlock via YAML override if it exists
 ##
 #' @importFrom yaml read_yaml
-.unlockYamlOverride <- function(connections, connectionFUNs)
+.unlockYamlOverride <- function(connections, connectionFUNs, service='shelter')
 {
   config_file <- file.path("..", paste0(basename(getwd()),".yml"))
 
   if(!file.exists(config_file)) return(list())
 
   config <- yaml::read_yaml(config_file)
-  if(is.null(config$shelter)) stop(paste0("Config file '",config_file,"' does not contain required 'shelter' entry"))
-  config <- config$shelter
-  if(is.null(config$keys))      stop(paste0("Config file '",config_file,"' does not contain required 'keys' entry under the 'shelter' entry"))
+  if(is.null(config[[service]])) stop(paste0("Config file '",config_file,"' does not contain required '",service,"' entry"))
+  config <- config[[service]]
+  if(is.null(config$keys))      stop(paste0("Config file '",config_file,"' does not contain required 'keys' entry under the '", service, "' entry"))
   keys   <- config$keys
 
   dest <- lapply(seq_along(connections), function(i)
@@ -60,11 +60,11 @@
     key  <- keys[[conn]]
 
     if(is.null(key) || length(key)==0)
-      stop(paste0("Config file '", config_file, "' does not have API_KEY for '", conn,"' under 'shelter: keys:' specified."))
+      stop(paste0("Config file '", config_file, "' does not have API_KEY for '", conn,"' under '", service, ": keys:' specified."))
     if(!is.character(key))
-      stop(paste0("Config file '", config_file, "' invalid entry for '", conn,"' under 'shelter: keys:'."))
+      stop(paste0("Config file '", config_file, "' invalid entry for '", conn,"' under '", service, ": keys:'."))
     if(length(key) > 1)
-      stop(paste0("Config file '", config_file, "' has too may key entries for '", conn,"' under 'shelter: keys:' specified."))
+      stop(paste0("Config file '", config_file, "' has too may key entries for '", conn,"' under '",service,": keys:' specified."))
 
     do.call(connectionFUNs[[i]], list(key=key))
   })
@@ -167,7 +167,8 @@
                           connectionFUNs,
                           keyring,
                           envir,
-                          passwordFUN)
+                          passwordFUN,
+                          service='shelter')
 {
   if(is.numeric(envir)) envir <- as.environment(envir)
 
@@ -180,17 +181,16 @@
   dest <- .unlockENVOverride(connections, connectionFUNs)
   if(length(dest) > 0)
     return(if(is.null(envir)) dest else list2env(dest, envir=envir))
-
   .unlockKeyring(keyring, passwordFUN)
 
   # Open Connections
   dest <- lapply(seq_along(connections), function(i)
   {
-    stored <- connections[i] %in% keyring::key_list("shelter", keyring)[,2]
+    stored <- connections[i] %in% keyring::key_list(service, keyring)[,2]
 
     api_key <- if(stored)
     {
-      keyring::key_get("shelter", connections[i], keyring)
+      keyring::key_get(service, connections[i], keyring)
     } else
     {
       passwordFUN(paste0("Please enter API_KEY for '", connections[i], "'."))
@@ -204,7 +204,7 @@
       conn <- (connectionFUNs[[i]])(api_key) # .connectAndCheck(api_key, url, ...)
       if(is.null(conn))
       {
-        keyring::key_delete("shelter", unname(connections[i]), keyring)
+        keyring::key_delete(service, unname(connections[i]), keyring)
         api_key <- passwordFUN(paste0(
           "Invalid API_KEY for '", connections[i],
           "' in keyring '", keyring,
@@ -213,10 +213,11 @@
         if(is.null(api_key) || api_key == '') stop("unlockAPIKEY aborted")
       } else if(!stored)
       {
-        keyring::key_set_with_value( service="shelter",
-                            username=unname(connections[i]),
-                            password=api_key,
-                            keyring=keyring)
+        keyring::key_set_with_value(
+          service=service,
+          username=unname(connections[i]),
+          password=api_key,
+          keyring=keyring)
       }
     }
     conn
