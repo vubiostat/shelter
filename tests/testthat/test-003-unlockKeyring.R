@@ -96,17 +96,12 @@ test_that(
 
     calls <- 0
     passwordFUN <- function(...) {calls <<- calls + 1; "xyz"}
+    stub(.unlockKeyring, "keyring_create", m)
+    stub(.unlockKeyring, "keyring_list", ukr)
 
-    with_mocked_bindings(
-      {
-        .unlockKeyring("MakeMe", passwordFUN)
-        expect_call(m, 1, keyring_create(keyring,password))
-      },
-      keyring_create = m,
-      keyring_list = ukr,
-      .package = "keyring"
-    )
+    .unlockKeyring("MakeMe", passwordFUN)
 
+    expect_call(m, 1, keyring_create(keyring,password))
     expect_equal(mock_args(m)[[1]], list("MakeMe", "xyz"))
     expect_true(calls == 1) # Asks user for password
     expect_true(Sys.getenv("SHELTER_PW") == "xyz") # Stores result
