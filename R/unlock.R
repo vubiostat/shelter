@@ -227,12 +227,12 @@
   if(is.null(envir)) dest else list2env(dest, envir=envir)
 }
 
-#' Open REDCap connections using cryptolocker for storage of API_KEYs.
+#' Open an API key and use it build a connection.
 #'
-#' Opens a set of connections to REDcap from API_KEYs stored in an encrypted keyring.
+#' Opens a set of connections  from API keys stored in an encrypted keyring.
 #' If the keyring does not exist, it will ask for password to this keyring to use on
 #' later requests. Next it
-#' will ask for the API_KEYs specified in `connections`. If an API_KEY does not
+#' will ask for the API keyss specified in `connections`. If an API key does not
 #' work, it will request again. On later executions it will use an open keyring
 #' to retrieve all API_KEYs or for a password if the keyring is currently
 #' locked.
@@ -240,12 +240,9 @@
 #' If one forgets the password to this keyring, or wishes to start over:
 #' `keyring::keyring_delete("<NAME_OF_KEY_RING_HERE>")`
 #'
-#' Consistent behavior requires `options(keyring_backend=keyring::backend_file)` to
-#' be set. It is recommended to place this in `~/.Rprofile`.
-#'
 #' For production servers where the password must be stored in a readable
 #' plain text file, it will search for `../<basename>.yml`. DO NOT USE
-#' this unless one is a sysadmin, as this defeats the security and purpose of
+#' this unless one is a sysadmin on a production hardened system, as this defeats the security and purpose of
 #' a local encrypted file. The expected structure of this yaml file is
 #' as follows:
 #'
@@ -260,13 +257,24 @@
 #' }
 #'
 #' For production servers the use of ENV variables is also supported. The connection
-#' string is converted to upper case for the search of ENV. If a YAML
-#' and ENV variable both exist, the YAML will take precedence.
+#' string is converted to upper case for the search of ENV. If a YAML file
+#' and ENV definitions both exist, the YAML will take precedence.
 #'
 #' IMPORTANT: Make sure that R is set to NEVER save workspace to .RData
 #' as this *is* writing the API_KEY to a local file in clear text because
-#' connection objects contain the unlocked key in memory. Tips
-#' are provided in `vignette("shelter-best-practices")`.
+#' connection objects contain the unlocked key in memory. One can use the
+#' following in .Rprofile, `usethis::edit_r_profile()`:
+#' \preformatted{
+#' newfun <- function (save = "no", status = 0, runLast = TRUE)
+#'   .Internal(quit(save, status, runLast))
+#' pkg <- 'base'
+#' oldfun <- 'q'
+#' pkgenv <- as.environment(paste0("package:", pkg))
+#' unlockBinding(oldfun, pkgenv)
+#' utils::assignInNamespace(oldfun, newfun, ns = pkg, envir = pkgenv)
+#' assign(oldfun, newfun, pkgenv)
+#' lockBinding(oldfun, pkgenv)
+#' }
 #'
 #' @param connections character vector. A list of strings that define the
 #'          connections with associated API_KEYs to load into environment. Each
@@ -280,36 +288,25 @@
 #' @param url character. The url of one's institutional REDCap server api.
 #' @param passwordFUN function. Function to get the password for the keyring. Usually defaults `getPass::getPass`.
 #'          On MacOS it will use rstudioapi::askForPassword if available.
-#' @param otherKeys list. A list of other keys to retrieve. Each list element
-#'          must be a list with name, variable and connectFUN keys. The connectFUN
-#'          can be as simple as an id function `function(x) x` or something that
-#'          constructs a connection object or calls `stop` if it's invalid.
-#' @param connectFUN function. A function that takes a key and returns a connection.
-#'          the function should call `stop` if the key is invalid in some manner.
-#' @param \dots Additional arguments passed to [redcapConnection()].
+#' @param connectFUN function or list(function). A function that takes a key and returns a connection.
+#'          the function should call `stop` if the key is invalid in some manner. The
+#'          first argument of the function is the API key. The validation of the
+#'          key via a connection test is important for the full user interaction
+#'          algorithm to work properly. If one wished to just retrieve an API key
+#'          and not test the connection this would work `function(x, ...) x`, but
+#'          be aware that if the key is invalid it will not query the user as
+#'          the validity is not tested.
+#' @param \dots Additional arguments passed to `connectFUN()`.
 #' @return If `envir` is NULL returns a list of opened connections. Otherwise
 #'         connections are assigned into the specified `envir`.
 #'
-#' @seealso
-#' [redcapConnection()]
-#'
-#' ## Vignettes
-#' `vignette("shelter-best-practices")`, \cr
-#' `vignette("shelter-getting-started-connecting")`
-#'
 #' @examples
 #' \dontrun{
-#' options(keyring_backend=keyring::backend_file) # Put in .Rprofile
-#'
-#' unlockREDCap(c(test_conn    = 'Testshelter',
+#' unlockKeys(c(test_conn    = 'Testshelter',
 #'                sandbox_conn = 'SandboxAPI'),
 #'              keyring      = '<NAME_OF_KEY_RING_HERE>',
 #'              envir        = globalenv(),
 #'              url          = 'https://<INSTITUTIONS_REDCAP_DOMAIN>/api/')
-#'
-#' unlockOther(c(logging = 'SplunkKey'),
-#'              keyring  = '<NAME_OF_KEY_RING_HERE>',
-#'              envir    = 1)
 #' }
 #' @importFrom checkmate makeAssertCollection
 #' @importFrom checkmate assert_character
@@ -333,19 +330,25 @@ unlockKeys <- function(connections,
   assert_character(x = connections,  null.ok = FALSE, add = coll)
   assert_function( x = passwordFUN,  null.ok = FALSE, add = coll)
   assert_class(    x = envir,        null.ok = TRUE,  add = coll, classes="environment")
-  assert_function( x = connectFUN,   null.ok = TRUE,  add = coll, nargs=1)
+  if(inherits(connectFUN, "list"))
+  {
+    assert_list(x=connectFUN, any.missing = FALSE, len=length(connections), add=coll, types="function")
+  } else {
+    assert_function(x = connectFUN, null.ok = FALSE,  add = coll, nargs=1)
+  }
   reportAssertions(coll)
-
-  if(is.null(connectFUN)) connectFUN <- function(x) x
 
    ###########################################################################
   ## Setup Internal Loop functions
-  n <- length(connections)
-  connectionFUNs <- vector('list', n)
 
-  # FIXME: First HACK: Check for yaml config params here and merge as needed.
-  for(i in seq(n)) connectionFUNs[[i]] <- function(key) connectFUN(key, ...)
+# FIXME!!!! First HACK: Check for yaml config params here and merge as needed.
 
+  if(inherits(connectFUN, "function"))
+  {
+    n <- length(connections)
+    connectionFUNs <- vector('list', n)
+    for(i in seq(n)) connectionFUNs[[i]] <- function(key) connectFUN(key, ...)
+  }
    ###########################################################################
   ## Do it
   .unlockAlgorithm(connections,

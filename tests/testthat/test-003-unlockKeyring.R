@@ -2,7 +2,6 @@ context(".unlockKeyring")
 
 library(mockery)
 
-
 test_that(
   ".unlockKeyring pulls password from env and writes back",
   {

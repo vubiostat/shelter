@@ -2,7 +2,7 @@
 % Please edit documentation in R/unlock.R
 \name{unlockKeys}
 \alias{unlockKeys}
-\title{Open REDCap connections using cryptolocker for storage of API_KEYs.}
+\title{Open an API key and use it build a connection.}
 \usage{
 unlockKeys(
   connections,
@@ -22,8 +22,14 @@ The name in the returned list is this name.}
 
 \item{keyring}{character. Potential keyring, not used by default.}
 
-\item{connectFUN}{function. A function that takes a key and returns a connection.
-the function should call `stop` if the key is invalid in some manner.}
+\item{connectFUN}{function or list(function). A function that takes a key and returns a connection.
+the function should call `stop` if the key is invalid in some manner. The
+first argument of the function is the API key. The validation of the
+key via a connection test is important for the full user interaction
+algorithm to work properly. If one wished to just retrieve an API key
+and not test the connection this would work `function(x, ...) x`, but
+be aware that if the key is invalid it will not query the user as
+the validity is not tested.}
 
 \item{envir}{environment. The target environment for the connections. Defaults to NULL
 which returns the keys as a list. Use [globalenv()] to assign in the
@@ -32,24 +38,19 @@ global environment. Will accept a number such a '1' for global as well.}
 \item{passwordFUN}{function. Function to get the password for the keyring. Usually defaults `getPass::getPass`.
 On MacOS it will use rstudioapi::askForPassword if available.}
 
-\item{\dots}{Additional arguments passed to [redcapConnection()].}
+\item{\dots}{Additional arguments passed to `connectFUN()`.}
 
 \item{url}{character. The url of one's institutional REDCap server api.}
-
-\item{otherKeys}{list. A list of other keys to retrieve. Each list element
-must be a list with name, variable and connectFUN keys. The connectFUN
-can be as simple as an id function `function(x) x` or something that
-constructs a connection object or calls `stop` if it's invalid.}
 }
 \value{
 If `envir` is NULL returns a list of opened connections. Otherwise
         connections are assigned into the specified `envir`.
 }
 \description{
-Opens a set of connections to REDcap from API_KEYs stored in an encrypted keyring.
+Opens a set of connections  from API keys stored in an encrypted keyring.
 If the keyring does not exist, it will ask for password to this keyring to use on
 later requests. Next it
-will ask for the API_KEYs specified in `connections`. If an API_KEY does not
+will ask for the API keyss specified in `connections`. If an API key does not
 work, it will request again. On later executions it will use an open keyring
 to retrieve all API_KEYs or for a password if the keyring is currently
 locked.
@@ -58,12 +59,9 @@ locked.
 If one forgets the password to this keyring, or wishes to start over:
 `keyring::keyring_delete("<NAME_OF_KEY_RING_HERE>")`
 
-Consistent behavior requires `options(keyring_backend=keyring::backend_file)` to
-be set. It is recommended to place this in `~/.Rprofile`.
-
 For production servers where the password must be stored in a readable
 plain text file, it will search for `../<basename>.yml`. DO NOT USE
-this unless one is a sysadmin, as this defeats the security and purpose of
+this unless one is a sysadmin on a production hardened system, as this defeats the security and purpose of
 a local encrypted file. The expected structure of this yaml file is
 as follows:
 
@@ -78,33 +76,31 @@ other-config-stuff3: blah blah
 }
 
 For production servers the use of ENV variables is also supported. The connection
-string is converted to upper case for the search of ENV. If a YAML
-and ENV variable both exist, the YAML will take precedence.
+string is converted to upper case for the search of ENV. If a YAML file
+and ENV definitions both exist, the YAML will take precedence.
 
 IMPORTANT: Make sure that R is set to NEVER save workspace to .RData
 as this *is* writing the API_KEY to a local file in clear text because
-connection objects contain the unlocked key in memory. Tips
-are provided in `vignette("shelter-best-practices")`.
+connection objects contain the unlocked key in memory. One can use the
+following in .Rprofile, `usethis::edit_r_profile()`:
+\preformatted{
+newfun <- function (save = "no", status = 0, runLast = TRUE)
+  .Internal(quit(save, status, runLast))
+pkg <- 'base'
+oldfun <- 'q'
+pkgenv <- as.environment(paste0("package:", pkg))
+unlockBinding(oldfun, pkgenv)
+utils::assignInNamespace(oldfun, newfun, ns = pkg, envir = pkgenv)
+assign(oldfun, newfun, pkgenv)
+lockBinding(oldfun, pkgenv)
+}
 }
 \examples{
 \dontrun{
-options(keyring_backend=keyring::backend_file) # Put in .Rprofile
-
-unlockREDCap(c(test_conn    = 'Testshelter',
+unlockKeys(c(test_conn    = 'Testshelter',
                sandbox_conn = 'SandboxAPI'),
              keyring      = '<NAME_OF_KEY_RING_HERE>',
              envir        = globalenv(),
              url          = 'https://<INSTITUTIONS_REDCAP_DOMAIN>/api/')
-
-unlockOther(c(logging = 'SplunkKey'),
-             keyring  = '<NAME_OF_KEY_RING_HERE>',
-             envir    = 1)
 }
-}
-\seealso{
-[redcapConnection()]
-
-## Vignettes
-`vignette("shelter-best-practices")`, \cr
-`vignette("shelter-getting-started-connecting")`
 }
