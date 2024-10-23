@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023 Vanderbilt University Medical Center,
+# Copyright (C) 2021-2024 Vanderbilt University Medical Center,
 # Shawn Garbett, Cole Beck, Hui Wu, Benjamin Nutter, Savannah Obregon
 #
 # This program is free software: you can redistribute it and/or modify
@@ -42,7 +42,7 @@
  ## unlock via YAML override if it exists
 ##
 #' @importFrom yaml read_yaml
-.unlockYamlOverride <- function(connections, connectionFUNs, service='shelter')
+.unlockYamlOverride <- function(connections, connectionFUNs)
 {
   config_file <- file.path("..", paste0(basename(getwd()),".yml"))
 
@@ -296,6 +296,7 @@
 #'          and not test the connection this would work `function(x, ...) x`, but
 #'          be aware that if the key is invalid it will not query the user as
 #'          the validity is not tested.
+#' @param service character(1). The keyring service. Defaults to package name.
 #' @param \dots Additional arguments passed to `connectFUN()`.
 #' @return If `envir` is NULL returns a list of opened connections. Otherwise
 #'         connections are assigned into the specified `envir`.
@@ -306,7 +307,7 @@
 #'                sandbox_conn = 'SandboxAPI'),
 #'              keyring      = '<NAME_OF_KEY_RING_HERE>',
 #'              envir        = globalenv(),
-#'              url          = 'https://<INSTITUTIONS_REDCAP_DOMAIN>/api/')
+#'              passwordFUN  = function(x, ...) x)
 #' }
 #' @importFrom checkmate makeAssertCollection
 #' @importFrom checkmate assert_character
@@ -320,6 +321,7 @@ unlockKeys <- function(connections,
                        connectFUN  = NULL,
                        envir       = NULL,
                        passwordFUN = .default_pass(),
+                       service     = 'shelter',
                        ...)
 {
    ###########################################################################
@@ -357,6 +359,7 @@ unlockKeys <- function(connections,
                    connectionFUNs,
                    keyring,
                    envir,
-                   passwordFUN)
+                   passwordFUN,
+                   service=service)
 }
 
