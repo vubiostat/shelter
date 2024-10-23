@@ -28,4 +28,4 @@ Imports: checkmate,
          keyring (>= 1.3.0)
 Suggests: testthat (>= 3.0.0), rstudioapi, mockery
 URL: https://github.com/vubiostat/shelter
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2

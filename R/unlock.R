@@ -48,7 +48,7 @@
 
   if(!file.exists(config_file)) return(list())
 
-  config <- yaml::read_yaml(config_file)
+  config <- read_yaml(config_file)
   if(is.null(config[[service]])) stop(paste0("Config file '",config_file,"' does not contain required '",service,"' entry"))
   config <- config[[service]]
   if(is.null(config$keys))      stop(paste0("Config file '",config_file,"' does not contain required 'keys' entry under the '", service, "' entry"))
@@ -101,7 +101,7 @@
 #' @importFrom keyring keyring_create
 .unlockKeyring <- function(keyring, passwordFUN)
 {
-  state <- keyring::keyring_list()
+  state <- keyring_list()
   state <- state[state$keyring==keyring,]
   msg   <- paste0("Please enter password to unlock API keyring '",keyring, "'.")
 
@@ -119,7 +119,7 @@
 
       tryCatch(
         {
-          keyring::keyring_unlock(keyring, password)
+          keyring_unlock(keyring, password)
           .savePWGlobalEnv(password)
           locked <- FALSE
         },
@@ -137,7 +137,7 @@
                                    keyring, "'."))
     if(is.null(password) || password == '') stop(paste0("User cancelled creation of keyring '", keyring, "'."))
 
-    keyring::keyring_create(keyring, password)
+    keyring_create(keyring, password)
     .savePWGlobalEnv(password)
   }
 }
@@ -156,7 +156,7 @@
      rstudioapi::isAvailable(child_ok=TRUE))
   {
     rstudioapi::askForPassword
-  } else getPass::getPass
+  } else getPass
 }
 
 # Main internal algorithm
@@ -186,11 +186,11 @@
   # Open Connections
   dest <- lapply(seq_along(connections), function(i)
   {
-    stored <- connections[i] %in% keyring::key_list(service, keyring)[,2]
+    stored <- connections[i] %in% key_list(service, keyring)[,2]
 
     api_key <- if(stored)
     {
-      keyring::key_get(service, connections[i], keyring)
+      key_get(service, connections[i], keyring)
     } else
     {
       passwordFUN(paste0("Please enter API_KEY for '", connections[i], "'."))
@@ -204,7 +204,7 @@
       conn <- (connectionFUNs[[i]])(api_key) # .connectAndCheck(api_key, url, ...)
       if(is.null(conn))
       {
-        keyring::key_delete(service, unname(connections[i]), keyring)
+        key_delete(service, unname(connections[i]), keyring)
         api_key <- passwordFUN(paste0(
           "Invalid API_KEY for '", connections[i],
           "' in keyring '", keyring,
@@ -213,7 +213,7 @@
         if(is.null(api_key) || api_key == '') stop("unlockAPIKEY aborted")
       } else if(!stored)
       {
-        keyring::key_set_with_value(
+        key_set_with_value(
           service=service,
           username=unname(connections[i]),
           password=api_key,
@@ -311,6 +311,10 @@
 #'              keyring  = '<NAME_OF_KEY_RING_HERE>',
 #'              envir    = 1)
 #' }
+#' @importFrom checkmate makeAssertCollection
+#' @importFrom checkmate assert_character
+#' @importFrom checkmate assert_function
+#' @importFrom checkmate reportAssertions
 #' @export
 unlockKeys <- function(connections,
                        keyring,
@@ -321,16 +325,16 @@ unlockKeys <- function(connections,
 {
    ###########################################################################
   # Check parameters passed to function
-  coll <- checkmate::makeAssertCollection()
+  coll <- makeAssertCollection()
 
   if(is.numeric(envir)) envir <- as.environment(envir)
 
-  checkmate::assert_character(x = keyring,      null.ok = FALSE, add = coll)
-  checkmate::assert_character(x = connections,  null.ok = FALSE, add = coll)
-  checkmate::assert_function( x = passwordFUN,  null.ok = FALSE, add = coll)
-  checkmate::assert_class(    x = envir,        null.ok = TRUE,  add = coll, classes="environment")
-  checkmate::assert_function( x = connectFUN,   null.ok = TRUE,  add = coll, nargs=1)
-  checkmate::reportAssertions(coll)
+  assert_character(x = keyring,      null.ok = FALSE, add = coll)
+  assert_character(x = connections,  null.ok = FALSE, add = coll)
+  assert_function( x = passwordFUN,  null.ok = FALSE, add = coll)
+  assert_class(    x = envir,        null.ok = TRUE,  add = coll, classes="environment")
+  assert_function( x = connectFUN,   null.ok = TRUE,  add = coll, nargs=1)
+  reportAssertions(coll)
 
   if(is.null(connectFUN)) connectFUN <- function(x) x
 

@@ -1,6 +1,7 @@
 context(".unlockAlgorithm")
 
 library(mockery)
+library(checkmate)
 
 test_that(
   ".unlockAlgorithm asks for API_KEY if not stored, opens connection and stores",
@@ -10,9 +11,9 @@ test_that(
     stub(.unlockAlgorithm, ".unlockENVOverride", list()) # No ENV
 
     stub(.unlockAlgorithm, ".unlockKeyring", TRUE)
-    stub(.unlockAlgorithm, "keyring::key_list",
+    stub(.unlockAlgorithm, "key_list",
          data.frame(service="redcapAPI", username="Nadda"))
-    stub(.unlockAlgorithm, "keyring::key_set_with_value", m)
+    stub(.unlockAlgorithm, "key_set_with_value", m)
 
     calls <- 0
     passwordFUN <- function(...) {calls <<- calls + 1; "xyz"}
