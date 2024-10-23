@@ -161,6 +161,7 @@
 
 # Main internal algorithm
 #' @importFrom keyring key_get
+#' @importFrom keyring key_list
 #' @importFrom keyring key_delete
 #' @importFrom keyring key_set_with_value
 .unlockAlgorithm <- function(connections,
@@ -201,7 +202,7 @@
     conn <- NULL
     while(is.null(conn))
     {
-      conn <- (connectionFUNs[[i]])(api_key) # .connectAndCheck(api_key, url, ...)
+      conn <- (connectionFUNs[[i]])(api_key)
       if(is.null(conn))
       {
         key_delete(service, unname(connections[i]), keyring)
@@ -285,7 +286,6 @@
 #'          which returns the keys as a list. Use [globalenv()] to assign in the
 #'          global environment. Will accept a number such a '1' for global as well.
 #' @param keyring character. Potential keyring, not used by default.
-#' @param url character. The url of one's institutional REDCap server api.
 #' @param passwordFUN function. Function to get the password for the keyring. Usually defaults `getPass::getPass`.
 #'          On MacOS it will use rstudioapi::askForPassword if available.
 #' @param connectFUN function or list(function). A function that takes a key and returns a connection.
@@ -310,6 +310,8 @@
 #' }
 #' @importFrom checkmate makeAssertCollection
 #' @importFrom checkmate assert_character
+#' @importFrom checkmate assert_class
+#' @importFrom checkmate assert_list
 #' @importFrom checkmate assert_function
 #' @importFrom checkmate reportAssertions
 #' @export

@@ -1,6 +1,6 @@
 Package: shelter
 Type: Package
-Title: Support for secure API key management. 
+Title: Support for secure API key management
 Version: 0.1.0
 Authors@R: c(
     person("Benjamin", "Nutter", email = "benjamin.nutter@gmail.com", 

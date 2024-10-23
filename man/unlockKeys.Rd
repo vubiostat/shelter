@@ -39,8 +39,6 @@ global environment. Will accept a number such a '1' for global as well.}
 On MacOS it will use rstudioapi::askForPassword if available.}
 
 \item{\dots}{Additional arguments passed to `connectFUN()`.}
-
-\item{url}{character. The url of one's institutional REDCap server api.}
 }
 \value{
 If `envir` is NULL returns a list of opened connections. Otherwise
