@@ -87,3 +87,23 @@ test_that(
     expect_true(x$sand)
   }
 )
+
+test_that(
+  ".unlockYamlOverride allows local override of ... options",
+  {
+    m <- mock(1, 2)
+    f <- function(key, ...) m(key, ...)
+    stub(.unlockYamlOverride, "file.exists", TRUE)
+    stub(.unlockYamlOverride, "read_yaml",
+                  list(shelter=list(keys=list(TestRedcapAPI='xyz', Sandbox='xyz'), config=list(abc=4, def=5))))
+    x <- .unlockYamlOverride(c("TestRedcapAPI", "Sandbox"), list(f,f), "shelter",abc=3,ghi=6)
+    expect_called(m, 2)
+    expect_equal(mock_args(m)[[1]][['abc']], 4)
+    expect_equal(mock_args(m)[[2]][['abc']], 4)
+    expect_equal(mock_args(m)[[1]][['def']], 5)
+    expect_equal(mock_args(m)[[2]][['def']], 5)
+    expect_equal(mock_args(m)[[1]][['ghi']], 6)
+    expect_equal(mock_args(m)[[2]][['ghi']], 6)
+  }
+)
+

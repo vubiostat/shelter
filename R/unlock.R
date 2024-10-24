@@ -56,6 +56,10 @@
 
   args <- list(...)
 
+  # Allow for config override for network
+  if(!is.null(config[['config']]))
+    args <- modifyList(args, config[['config']])
+
   dest <- lapply(seq_along(connections), function(i)
   {
     conn <- connections[i]
