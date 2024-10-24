@@ -5,13 +5,14 @@ library(keyring)
 library(checkmate)
 
 test_that(
-  "unlockKeys pulls API_KEY and opens connection from keyring returning as list",
+  "unlockKeys pulls API key and opens connection from keyring returning as list",
   {
+    bf <- backend_file$new()
     local_mocked_bindings(.unlockYamlOverride=mock(list()), # No yaml
                           .unlockENVOverride=mock(list()),  # No ENV
-                          .unlockKeyring=mock(NULL)) # Unlocked.
+                          .unlockKeyring=mock(bf)) # Unlocked.
 
-    bf <- backend_file$new()
+
     keyring <- 'sheltertest'
 
     # In case of previous test failing

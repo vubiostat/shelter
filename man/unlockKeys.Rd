@@ -10,6 +10,7 @@ unlockKeys(
   connectFUN = NULL,
   envir = NULL,
   passwordFUN = .default_pass(),
+  service = "shelter",
   ...
 )
 }
@@ -37,6 +38,8 @@ global environment. Will accept a number such a '1' for global as well.}
 
 \item{passwordFUN}{function. Function to get the password for the keyring. Usually defaults `getPass::getPass`.
 On MacOS it will use rstudioapi::askForPassword if available.}
+
+\item{service}{character(1). The keyring service. Defaults to package name.}
 
 \item{\dots}{Additional arguments passed to `connectFUN()`.}
 }
@@ -99,6 +102,6 @@ unlockKeys(c(test_conn    = 'Testshelter',
                sandbox_conn = 'SandboxAPI'),
              keyring      = '<NAME_OF_KEY_RING_HERE>',
              envir        = globalenv(),
-             url          = 'https://<INSTITUTIONS_REDCAP_DOMAIN>/api/')
+             passwordFUN  = function(x, ...) x)
 }
 }

@@ -105,9 +105,11 @@
 #' @importFrom keyring keyring_list
 #' @importFrom keyring keyring_unlock
 #' @importFrom keyring keyring_create
+#' @importFrom keyring backend_file
 .unlockKeyring <- function(keyring, passwordFUN)
 {
-  state <- keyring_list()
+  bf    <- backend_file$new()
+  state <- bf$keyring_list()
   state <- state[state$keyring==keyring,]
   msg   <- paste0("Please enter password to unlock API keyring '",keyring, "'.")
 
@@ -125,7 +127,7 @@
 
       tryCatch(
         {
-          keyring_unlock(keyring, password)
+          bf$keyring_unlock(keyring, password)
           .savePWGlobalEnv(password)
           locked <- FALSE
         },
@@ -143,9 +145,10 @@
                                    keyring, "'."))
     if(is.null(password) || password == '') stop(paste0("User cancelled creation of keyring '", keyring, "'."))
 
-    keyring_create(keyring, password)
+    bf$keyring_create(keyring, password)
     .savePWGlobalEnv(password)
   }
+  bf
 }
 
   #############################################################################
@@ -192,16 +195,16 @@
     return(if(is.null(envir)) dest else list2env(dest, envir=envir))
 
   # Proceed to unlock the local keyring
-  .unlockKeyring(keyring, passwordFUN)
+  bf <- .unlockKeyring(keyring, passwordFUN)
 
   # Open Connections
   dest <- lapply(seq_along(connections), function(i)
   {
-    stored <- connections[i] %in% key_list(service, keyring)[,2]
+    stored <- connections[i] %in% (bf$list(service, keyring))[,2]
 
     api_key <- if(stored)
     {
-      key_get(service, connections[i], keyring)
+      bf$get(service, connections[i], keyring)
     } else
     {
       passwordFUN(paste0("Please enter API key for '", connections[i], "'."))
@@ -215,7 +218,7 @@
       conn <- (connectionFUNs[[i]])(api_key, ...)
       if(is.null(conn))
       {
-        key_delete(service, unname(connections[i]), keyring)
+        bf$delete(service, unname(connections[i]), keyring)
         api_key <- passwordFUN(paste0(
           "Invalid API key for '", connections[i],
           "' in keyring '", keyring,
@@ -224,7 +227,7 @@
         if(is.null(api_key) || api_key == '') stop("unlockAPIKEY aborted")
       } else if(!stored)
       {
-        key_set_with_value(
+        bf$set_with_value(
           service=service,
           username=unname(connections[i]),
           password=api_key,
