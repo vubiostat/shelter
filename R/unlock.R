@@ -67,7 +67,6 @@
       stop(paste0("Config file '", config_file, "' invalid entry for '", conn,"' under '", service, ": keys:'."))
     if(length(key) > 1)
       stop(paste0("Config file '", config_file, "' has too may key entries for '", conn,"' under '",service,": keys:' specified."))
-
     do.call(connectionFUNs[[i]], modifyList(list(key=key), args))
   })
   names(dest) <- if(is.null(names(connections))) connections else names(connections)
@@ -187,6 +186,8 @@
   dest <- .unlockENVOverride(connections, connectionFUNs, ...)
   if(length(dest) > 0)
     return(if(is.null(envir)) dest else list2env(dest, envir=envir))
+
+  # Proceed to unlock the local keyring
   .unlockKeyring(keyring, passwordFUN)
 
   # Open Connections
