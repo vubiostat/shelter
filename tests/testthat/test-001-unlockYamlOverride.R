@@ -6,9 +6,10 @@ library(mockery)
 test_that(
   ".unlockYamlOverride return empty list when override yaml doesn't exist",
   {
-    stub(.unlockYamlOverride, "file.exists", FALSE)
+    stub(.unlockYamlOverride, "file.exists",mock(FALSE))
 
     x <- .unlockYamlOverride("TestRedcapAPI", list(function(...) TRUE))
+
     expect_class(x, "list")
     expect_true(length(x) == 0)
   }
@@ -59,14 +60,19 @@ test_that(
 )
 
 test_that(
-  ".unlockYamlOverride returns an entry for every connection",
+  ".unlockYamlOverride returns an entry for every connection and passes ...",
   {
+    m <- mock(1, 2)
+    f <- function(key, ...) m(key, ...)
     stub(.unlockYamlOverride, "file.exists", TRUE)
     stub(.unlockYamlOverride, "read_yaml",
                   list(shelter=list(keys=list(TestRedcapAPI='xyz', Sandbox='xyz'))))
-    x <- .unlockYamlOverride(c("TestRedcapAPI", "Sandbox"), list(function(...) TRUE, function(...) TRUE), "shelter")
-    expect_true(x$TestRedcapAPI)
-    expect_true(x$Sandbox)
+    x <- .unlockYamlOverride(c("TestRedcapAPI", "Sandbox"), list(f,f), "shelter",abc=3)
+    expect_equal(x$TestRedcapAPI, 1)
+    expect_equal(x$Sandbox,2)
+    expect_called(m, 2)
+    expect_equal(mock_args(m)[[1]][['abc']], 3)
+    expect_equal(mock_args(m)[[2]][['abc']], 3)
   }
 )
 

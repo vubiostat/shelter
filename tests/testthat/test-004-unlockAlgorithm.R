@@ -4,7 +4,7 @@ library(mockery)
 library(checkmate)
 
 test_that(
-  ".unlockAlgorithm asks for API_KEY if not stored, opens connection and stores",
+  ".unlockAlgorithm asks for API key if not stored, opens connection and stores",
   {
     m <- mock(TRUE)
     stub(.unlockAlgorithm, ".unlockYamlOverride", list()) # No yaml

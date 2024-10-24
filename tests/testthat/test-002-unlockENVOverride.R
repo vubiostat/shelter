@@ -25,7 +25,6 @@ test_that(
   ".unlockENVOverride returns an entry for every connection",
   {
     stub(.unlockENVOverride, "Sys.getenv", "xyz")
-    stub(.unlockENVOverride, ".connectAndCheck", TRUE)
     x <- .unlockENVOverride(c("TestRedcapAPI", "Sandbox"),
                             list(function(...) TRUE, function(...) TRUE))
     expect_true(x$TestRedcapAPI)
@@ -36,11 +35,16 @@ test_that(
 test_that(
   ".unlockENVOverride returns an entry for every connection renamed as requested",
   {
+    m <- mock(1, 2)
+    f <- function(key, ...) m(key, ...)
     stub(.unlockENVOverride, "Sys.getenv", "xyz")
-    stub(.unlockENVOverride, ".connectAndCheck", TRUE)
     x <- .unlockENVOverride(c(rcon="TestRedcapAPI", sand="Sandbox"),
-                            list(function(...) TRUE, function(...) TRUE))
-    expect_true(x$rcon)
-    expect_true(x$sand)
+                            list(f,f),
+                            abc=3)
+    expect_equal(x$rcon,1)
+    expect_equal(x$sand,2)
+    expect_called(m, 2)
+    expect_equal(mock_args(m)[[1]][['abc']], 3)
+    expect_equal(mock_args(m)[[2]][['abc']], 3)
   }
 )
