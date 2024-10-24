@@ -42,7 +42,7 @@
  ## unlock via YAML override if it exists
 ##
 #' @importFrom yaml read_yaml
-.unlockYamlOverride <- function(connections, connectionFUNs)
+.unlockYamlOverride <- function(connections, connectionFUNs, service, ...)
 {
   config_file <- file.path("..", paste0(basename(getwd()),".yml"))
 
@@ -53,6 +53,8 @@
   config <- config[[service]]
   if(is.null(config$keys))      stop(paste0("Config file '",config_file,"' does not contain required 'keys' entry under the '", service, "' entry"))
   keys   <- config$keys
+
+  args <- list(...)
 
   dest <- lapply(seq_along(connections), function(i)
   {
@@ -66,7 +68,7 @@
     if(length(key) > 1)
       stop(paste0("Config file '", config_file, "' has too may key entries for '", conn,"' under '",service,": keys:' specified."))
 
-    do.call(connectionFUNs[[i]], list(key=key))
+    do.call(connectionFUNs[[i]], modifyList(list(key=key), args))
   })
   names(dest) <- if(is.null(names(connections))) connections else names(connections)
 
@@ -75,7 +77,7 @@
   #############################################################################
  ## unlock via ENV override if it exists
 ##
-.unlockENVOverride <- function(connections, connectionFUNs)
+.unlockENVOverride <- function(connections, connectionFUNs, ...)
 {
   api_key_ENV <- sapply(connections, function(x) Sys.getenv(toupper(x)))
 
@@ -84,9 +86,10 @@
   if(any(api_key_ENV == ""))
     stop(paste("Some matching ENV variables found but missing:",paste0(toupper(connections[api_key_ENV=='']), collapse=", ")))
 
+  args <- list(...)
   dest <- lapply(seq_along(connections), function(i)
   {
-    do.call(connectionFUNs[[i]], list(key = api_key_ENV[i]))
+    do.call(connectionFUNs[[i]], modifyList(list(key = api_key_ENV[i]), args))
   })
   names(dest) <- if(is.null(names(api_key_ENV))) api_key_ENV else names(api_key_ENV)
 
@@ -164,22 +167,24 @@
 #' @importFrom keyring key_list
 #' @importFrom keyring key_delete
 #' @importFrom keyring key_set_with_value
-.unlockAlgorithm <- function(connections,
-                          connectionFUNs,
-                          keyring,
-                          envir,
-                          passwordFUN,
-                          service='shelter')
+.unlockAlgorithm <- function(
+    connections,
+    connectionFUNs,
+    keyring,
+    envir,
+    passwordFUN,
+    service='shelter',
+    ...)
 {
   if(is.numeric(envir)) envir <- as.environment(envir)
 
   # Use YAML config if it exists
-  dest <- .unlockYamlOverride(connections, connectionFUNs)
+  dest <- .unlockYamlOverride(connections, connectionFUNs, service, ...)
   if(length(dest) > 0)
     return(if(is.null(envir)) dest else list2env(dest, envir=envir))
 
   # Use ENV if it exists and YAML does not exist
-  dest <- .unlockENVOverride(connections, connectionFUNs)
+  dest <- .unlockENVOverride(connections, connectionFUNs, ...)
   if(length(dest) > 0)
     return(if(is.null(envir)) dest else list2env(dest, envir=envir))
   .unlockKeyring(keyring, passwordFUN)
@@ -194,20 +199,20 @@
       key_get(service, connections[i], keyring)
     } else
     {
-      passwordFUN(paste0("Please enter API_KEY for '", connections[i], "'."))
+      passwordFUN(paste0("Please enter API key for '", connections[i], "'."))
     }
 
-    if(is.null(api_key) || api_key == '') stop(paste("No API_KEY entered for", connections[i]))
+    if(is.null(api_key) || api_key == '') stop(paste("No API key entered for", connections[i]))
 
     conn <- NULL
     while(is.null(conn))
     {
-      conn <- (connectionFUNs[[i]])(api_key)
+      conn <- (connectionFUNs[[i]])(api_key, ...)
       if(is.null(conn))
       {
         key_delete(service, unname(connections[i]), keyring)
         api_key <- passwordFUN(paste0(
-          "Invalid API_KEY for '", connections[i],
+          "Invalid API key for '", connections[i],
           "' in keyring '", keyring,
           "'. Possible causes include: mistyped, renewed, or revoked.",
           " Please enter a new key or cancel to abort."))
@@ -343,15 +348,12 @@ unlockKeys <- function(connections,
   reportAssertions(coll)
 
    ###########################################################################
-  ## Setup Internal Loop functions
-
-# FIXME!!!! First HACK: Check for yaml config params here and merge as needed.
-
+  ## Create callback list of connection functions if necessary
   if(inherits(connectFUN, "function"))
   {
     n <- length(connections)
     connectionFUNs <- vector('list', n)
-    for(i in seq(n)) connectionFUNs[[i]] <- function(key) connectFUN(key, ...)
+    for(i in seq(n)) connectionFUNs[[i]] <- function(key, ...) connectFUN(key, ...)
   }
    ###########################################################################
   ## Do it
@@ -360,6 +362,7 @@ unlockKeys <- function(connections,
                    keyring,
                    envir,
                    passwordFUN,
-                   service=service)
+                   service=service,
+                   ...)
 }
 

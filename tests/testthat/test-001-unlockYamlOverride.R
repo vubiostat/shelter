@@ -20,7 +20,7 @@ test_that(
     stub(.unlockYamlOverride, "file.exists", TRUE)
     stub(.unlockYamlOverride, "read_yaml", list())
 
-    expect_error(.unlockYamlOverride("shelter", list(function(...) TRUE)),
+    expect_error(.unlockYamlOverride("shelter", list(function(...) TRUE), "shelter"),
                  "does not contain required 'shelter' entry")
   }
 )
@@ -31,7 +31,7 @@ test_that(
     stub(.unlockYamlOverride, "file.exists", TRUE)
     stub(.unlockYamlOverride, "read_yaml", list(shelter=list()))
 
-    expect_error(.unlockYamlOverride("shelter", function(...) TRUE),
+    expect_error(.unlockYamlOverride("shelter", function(...) TRUE, "shelter"),
                  "does not contain required 'keys' entry")
   }
 )
@@ -42,7 +42,7 @@ test_that(
     stub(.unlockYamlOverride, "file.exists", TRUE)
     stub(.unlockYamlOverride, "read_yaml", list(shelter=list(keys=list(TestRedcapAPI=list()))))
 
-    expect_error(.unlockYamlOverride("TestRedcapAPI", list(function(...) TRUE)),
+    expect_error(.unlockYamlOverride("TestRedcapAPI", list(function(...) TRUE), "shelter"),
                  "does not have API_KEY for")
   }
 )
@@ -64,7 +64,7 @@ test_that(
     stub(.unlockYamlOverride, "file.exists", TRUE)
     stub(.unlockYamlOverride, "read_yaml",
                   list(shelter=list(keys=list(TestRedcapAPI='xyz', Sandbox='xyz'))))
-    x <- .unlockYamlOverride(c("TestRedcapAPI", "Sandbox"), list(function(...) TRUE, function(...) TRUE))
+    x <- .unlockYamlOverride(c("TestRedcapAPI", "Sandbox"), list(function(...) TRUE, function(...) TRUE), "shelter")
     expect_true(x$TestRedcapAPI)
     expect_true(x$Sandbox)
   }
@@ -76,7 +76,7 @@ test_that(
     stub(.unlockYamlOverride, "file.exists", TRUE)
     stub(.unlockYamlOverride, "read_yaml",
                   list(shelter=list(keys=list(TestRedcapAPI='xyz', Sandbox='xyz'))))
-    x <- .unlockYamlOverride(c(rcon="TestRedcapAPI", sand="Sandbox"), list(function(...) TRUE, function(...) TRUE))
+    x <- .unlockYamlOverride(c(rcon="TestRedcapAPI", sand="Sandbox"), list(function(...) TRUE, function(...) TRUE), 'shelter')
     expect_true(x$rcon)
     expect_true(x$sand)
   }
