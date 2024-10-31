@@ -9,7 +9,6 @@ test_that(
     local_mocked_bindings(.unlockYamlOverride=mock(list()), # No yaml
                           .unlockENVOverride=mock(list())) # No ENV
 
-
     keyring <- 'sheltertest'
 
     # In case of previous test failing
@@ -41,34 +40,34 @@ test_that(
     expect_equal(mock_args(m)[[1]][['abc']], 456)
   }
 )
-#
-# test_that(
-#   "unlockKeys sends ... to .unlockYamlOverride",
-#   {
-#     m <- mock(list(xyz=456))
-#
-#     local_mocked_bindings(.unlockYamlOverride=m)
-#     unlockKeys(c("TestRedcapAPI"),
-#                "shelter",
-#                function(key, ...) TRUE,
-#                abc=123)
-#     expect_called(m, 1)
-#     expect_equal(mock_args(m)[[1]][['abc']], 123)
-#   }
-# )
-#
-# test_that(
-#   "unlockKeys sends ... to .unlockENVOverride",
-#   {
-#     m <- mock(list(xyz=456))
-#
-#     local_mocked_bindings(.unlockENVOverride=m)
-#     unlockKeys(c("TestRedcapAPI"),
-#                "shelter",
-#                function(key, ...) TRUE,
-#                abc=123)
-#     expect_called(m, 1)
-#     expect_equal(mock_args(m)[[1]][['abc']], 123)
-#   }
-# )
-#
+
+test_that(
+  "unlockKeys sends ... to .unlockYamlOverride",
+  {
+    m <- mock(list(xyz=456))
+
+    local_mocked_bindings(.unlockYamlOverride=m)
+    unlockKeys(c("TestRedcapAPI"),
+               "shelter",
+               function(key, ...) TRUE,
+               abc=123)
+    expect_called(m, 1)
+    expect_equal(mock_args(m)[[1]][['abc']], 123)
+  }
+)
+
+test_that(
+  "unlockKeys sends ... to .unlockENVOverride",
+  {
+    m <- mock(list(xyz=456))
+
+    local_mocked_bindings(.unlockENVOverride=m)
+    unlockKeys(c("TestRedcapAPI"),
+               "shelter",
+               function(key, ...) TRUE,
+               abc=123)
+    expect_called(m, 1)
+    expect_equal(mock_args(m)[[1]][['abc']], 123)
+  }
+)
+
