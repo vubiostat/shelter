@@ -195,7 +195,7 @@
 
     api_key <- if(stored)
     {
-	  key_get(keyring, service, connections[i])
+      key_get(keyring, service, connections[i])
     } else
     {
       passwordFUN(paste0("Please enter API key for '", connections[i], "'."))
