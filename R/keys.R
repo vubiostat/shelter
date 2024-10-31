@@ -19,9 +19,63 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+is_locked <- function(keyring)
+{
+  file_name <- keyring_file(keyring)
+
+  if (!file.exists(file_name))
+    stop("Keyring `", keyring, "` does not exist")
+
+  if (!file.exists(file_name) || is_set_keyring_pass(keyring))
+  {
+    TRUE
+  } else
+  {
+    tryCatch(
+      {
+        cached <- get_cache(keyring)
+        secret_decrypt(
+          cached$check,
+          cached$nonce,
+          get_keyring_pass(keyring)
+        )
+        FALSE
+      },
+      error = function(e)
+      {
+        if(conditionMessage(e) == "Failed to decrypt")
+          TRUE
+        else
+          stop(e)
+      }
+    )
+  }
+}
+
+keyring_unlock <- function(keyring, password)
+{
+  file <- keyring_file(keyring)
+
+  if (!file.exists(file))
+    stop("Keyring `", keyring, "` does not exist")
+
+  set_keyring_pass(password, keyring)
+
+  if (is_locked(keyring)) {
+    unset_keyring_pass(keyring)
+    b_file_error(
+      "cannot unlock keyring",
+      "The supplied password does not work."
+    )
+  }
+
+  NULL
+}
+
+
 key_get <- function(keyring, service, username = NULL) {
-  autocreate(keyring)
-  if(is_locked(keyring)) unlock(keyring)
+#  autocreate(keyring)
+#  if(is_locked(keyring)) keyring_unlock(keyring)
 
   cached <- get_cache(keyring)
   all_items <- cached$items
@@ -45,8 +99,8 @@ key_get <- function(keyring, service, username = NULL) {
 }
 
 key_set_with_value <- function(keyring, service, username = NULL, password) {
-  autocreate(keyring)
-  if(is_locked(keyring)) unlock(keyring)
+#  autocreate(keyring)
+  if(is_locked(keyring)) keyring_unlock(keyring, password)
 
   file_name <- keyring_file(keyring)
   kr_env <- keyring_env(file_name)
@@ -80,7 +134,7 @@ key_set_with_value <- function(keyring, service, username = NULL, password) {
 }
 
 key_delete <- function(keyring, service, username) {
-  if(is_locked(keyring)) unlock(keyring)
+  #if(is_locked(keyring)) keyring_unlock(keyring)
   file_name <- keyring_file(keyring)
   kr_env <- keyring_env(file_name)
 
