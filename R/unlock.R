@@ -195,7 +195,7 @@
 
     api_key <- if(stored)
     {
-      get(service, connections[i], keyring)
+      key_get(keyring, service, connections[i])
     } else
     {
       passwordFUN(paste0("Please enter API key for '", connections[i], "'."))
@@ -209,7 +209,7 @@
       conn <- (connectionFUNs[[i]])(api_key, ...)
       if(is.null(conn))
       {
-        delete(service, unname(connections[i]), keyring)
+        key_delete(keyring, service, unname(connections[i]))
         api_key <- passwordFUN(paste0(
           "Invalid API key for '", connections[i],
           "' in keyring '", keyring,
@@ -319,6 +319,7 @@
 #' @importFrom checkmate assert_list
 #' @importFrom checkmate assert_function
 #' @importFrom checkmate reportAssertions
+#' @export
 unlockKeys <- function(connections,
                        keyring,
                        connectFUN  = NULL,
@@ -353,6 +354,7 @@ unlockKeys <- function(connections,
     connectionFUNs <- vector('list', n)
     for(i in seq(n)) connectionFUNs[[i]] <- function(key, ...) connectFUN(key, ...)
   }
+  browser()
    ###########################################################################
   ## Do it
   .unlockAlgorithm(connections,
