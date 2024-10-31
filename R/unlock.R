@@ -191,7 +191,7 @@
   # Open Connections
   dest <- lapply(seq_along(connections), function(i)
   {
-    stored <- connections[i] %in% (key_list(service, keyring))[,2]
+    stored <- connections[i] %in% (key_list(keyring, service))[,2]
 
     api_key <- if(stored)
     {
