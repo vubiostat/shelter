@@ -56,7 +56,7 @@ keyring_unlock <- function(keyring, password)
   if (!file.exists(file))
     stop("Keyring `", keyring, "` does not exist")
 
-  set_keyring_pass(password, keyring)
+  set_keyring_pass(keyring, password)
 
 # FIXME: This should be a TRUE/FALSE return state and not an exception
   if (is_locked(keyring)) {

@@ -191,11 +191,11 @@
   # Open Connections
   dest <- lapply(seq_along(connections), function(i)
   {
-    stored <- connections[i] %in% (key_list(service, keyring))[,2]
+    stored <- connections[i] %in% (key_list(keyring, service))[,2]
 
     api_key <- if(stored)
     {
-      get(service, connections[i], keyring)
+	  key_get(keyring, service, connections[i])
     } else
     {
       passwordFUN(paste0("Please enter API key for '", connections[i], "'."))
