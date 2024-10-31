@@ -39,7 +39,7 @@ keyring_list <- function() {
 }
 
 key_list <- function(keyring, service = NULL) {
-  autocreate(keyring)
+  #autocreate(keyring)
   cached <- get_cache(keyring)
   all_items <- cached$items
 

@@ -9,7 +9,7 @@ test_that(
   {
     local_mocked_bindings(.unlockYamlOverride=mock(list()), # No yaml
                           .unlockENVOverride=mock(list()),  # No ENV
-                          .unlockKeyring=mock(bf)) # Unlocked.
+                          .unlockKeyring=mock(TRUE)) # Unlocked.
 
 
     keyring <- 'sheltertest'

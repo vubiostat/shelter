@@ -35,17 +35,6 @@ create <- function(keyring, password) {
   TRUE # success
 }
 
-autocreate <- function(keyring) {
-  file_name <- keyring_file(keyring)
-  if (!file.exists(file_name)) {
-    if(interactive()) {
-      prompt <- sprintf("The '%s' keyring does not exist, enter a keyring password to create it: ", keyring)
-      create(keyring, password = get_pass(prompt))
-    } else {
-      stop(sprintf("The '%s' keyring does not exists, create it first!", keyring))
-    }
-  }
-}
 
 delete <- function(keyring) {
   file_name <- keyring_file(keyring)

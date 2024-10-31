@@ -24,21 +24,18 @@ is_locked <- function(keyring)
   file_name <- keyring_file(keyring)
 
   if (!file.exists(file_name))
-    stop("Keyring `", keyring, "` does not exist")
+    stop(sprintf("Keyring `%s` does not exist", keyring))
 
-  if (!file.exists(file_name) || is_set_keyring_pass(keyring))
+  if (!is_set_keyring_pass(keyring))
   {
     TRUE
   } else
   {
+    cached <- get_cache(keyring)
+    key    <- get_keyring_pass(keyring)
     tryCatch(
       {
-        cached <- get_cache(keyring)
-        secret_decrypt(
-          cached$check,
-          cached$nonce,
-          get_keyring_pass(keyring)
-        )
+        secret_decrypt(cached$check,cached$nonce,key)
         FALSE
       },
       error = function(e)
@@ -61,15 +58,16 @@ keyring_unlock <- function(keyring, password)
 
   set_keyring_pass(password, keyring)
 
+# FIXME: This should be a TRUE/FALSE return state and not an exception
   if (is_locked(keyring)) {
     unset_keyring_pass(keyring)
-    b_file_error(
+    file_error(
       "cannot unlock keyring",
       "The supplied password does not work."
     )
   }
 
-  NULL
+  TRUE
 }
 
 
@@ -87,6 +85,7 @@ key_get <- function(keyring, service, username = NULL) {
     item_matches <- item_matches & users %in% username
   }
 
+# FIXME: This should return an NA instead of throwing an exception.
   if (sum(item_matches) < 1L) {
     file_error("cannot get secret", "The specified item could not be found in the keychain.")
   }
