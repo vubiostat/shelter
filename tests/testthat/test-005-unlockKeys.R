@@ -7,7 +7,6 @@ library(checkmate)
 test_that(
   "unlockKeys pulls API key and opens connection from keyring returning as list",
   {
-    bf <- backend_file$new()
     local_mocked_bindings(.unlockYamlOverride=mock(list()), # No yaml
                           .unlockENVOverride=mock(list()),  # No ENV
                           .unlockKeyring=mock(bf)) # Unlocked.
@@ -16,14 +15,15 @@ test_that(
     keyring <- 'sheltertest'
 
     # In case of previous test failing
-    try(bf$keyring_delete(keyring), TRUE)
+    try(delete(keyring), TRUE)
 
-    bf$keyring_create(keyring, 'abc123')
+    create(keyring, 'abc123')
+
     key_set_with_value(
-          service='shelter',
-          username='testdb',
-          password='123',
-          keyring=keyring)
+          keyring,
+          'shelter',
+          'testdb',
+          '123')
 
     m <- mock('ABC')
 
@@ -35,7 +35,7 @@ test_that(
       abc=456))
     expect_true("rcon" %in% names(x))
     expect_equal(x$rcon, 'ABC')
-    bf$keyring_delete(keyring)
+    keyring_delete(keyring)
 
     # Check the "..." passing
     expect_called(m, 1)

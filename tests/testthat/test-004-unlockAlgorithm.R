@@ -30,7 +30,7 @@ test_that(
     expect_true("rcon" %in% names(x))
     expect_true(x$rcon)
     expect_called(m, 1) # Called key_set_with_value once
-    expect_equal(mock_args(m)[[1]], list(service="shelter", username="George", password="xyz", keyring="API_KEYs"))
+    expect_equal(mock_args(m)[[1]], list("API_KEYs", "shelter", "George", "xyz" ))
     expect_called(n, 1) # Called connectFUNs
   }
 )

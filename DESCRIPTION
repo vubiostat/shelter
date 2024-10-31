@@ -25,7 +25,9 @@ LazyData: true
 Imports: checkmate,
          getPass,
          yaml,
-         keyring (>= 1.3.0)
+         filelock,
+         rappdirs,
+         sodium
 Suggests: testthat (>= 3.0.0), rstudioapi, mockery
 URL: https://github.com/vubiostat/shelter
 RoxygenNote: 7.3.2

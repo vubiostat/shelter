@@ -102,14 +102,9 @@
   #############################################################################
  ## unlock keyring
 ##
-#' @importFrom keyring keyring_list
-#' @importFrom keyring keyring_unlock
-#' @importFrom keyring keyring_create
-#' @importFrom keyring backend_file
 .unlockKeyring <- function(keyring, passwordFUN)
 {
-  bf    <- backend_file$new()
-  state <- bf$keyring_list()
+  state <- keyring_list()
   state <- state[state$keyring==keyring,]
   msg   <- paste0("Please enter password to unlock API keyring '",keyring, "'.")
 
@@ -127,7 +122,7 @@
 
       tryCatch(
         {
-          bf$keyring_unlock(keyring, password)
+          keyring_unlock(keyring, password)
           .savePWGlobalEnv(password)
           locked <- FALSE
         },
@@ -145,10 +140,10 @@
                                    keyring, "'."))
     if(is.null(password) || password == '') stop(paste0("User cancelled creation of keyring '", keyring, "'."))
 
-    bf$keyring_create(keyring, password)
+    create(keyring, password)
     .savePWGlobalEnv(password)
   }
-  bf
+  NULL
 }
 
   #############################################################################
@@ -169,10 +164,6 @@
 }
 
 # Main internal algorithm
-#' @importFrom keyring key_get
-#' @importFrom keyring key_list
-#' @importFrom keyring key_delete
-#' @importFrom keyring key_set_with_value
 .unlockAlgorithm <- function(
     connections,
     connectionFUNs,
@@ -195,16 +186,16 @@
     return(if(is.null(envir)) dest else list2env(dest, envir=envir))
 
   # Proceed to unlock the local keyring
-  bf <- .unlockKeyring(keyring, passwordFUN)
+  .unlockKeyring(keyring, passwordFUN)
 
   # Open Connections
   dest <- lapply(seq_along(connections), function(i)
   {
-    stored <- connections[i] %in% (bf$list(service, keyring))[,2]
+    stored <- connections[i] %in% (key_list(service, keyring))[,2]
 
     api_key <- if(stored)
     {
-      bf$get(service, connections[i], keyring)
+      get(service, connections[i], keyring)
     } else
     {
       passwordFUN(paste0("Please enter API key for '", connections[i], "'."))
@@ -218,7 +209,7 @@
       conn <- (connectionFUNs[[i]])(api_key, ...)
       if(is.null(conn))
       {
-        bf$delete(service, unname(connections[i]), keyring)
+        delete(service, unname(connections[i]), keyring)
         api_key <- passwordFUN(paste0(
           "Invalid API key for '", connections[i],
           "' in keyring '", keyring,
@@ -227,11 +218,11 @@
         if(is.null(api_key) || api_key == '') stop("unlockAPIKEY aborted")
       } else if(!stored)
       {
-        bf$set_with_value(
-          service=service,
-          username=unname(connections[i]),
-          password=api_key,
-          keyring=keyring)
+        key_set_with_value(
+          keyring,
+          service,
+          unname(connections[i]),
+          api_key)
       }
     }
     conn
@@ -328,7 +319,6 @@
 #' @importFrom checkmate assert_list
 #' @importFrom checkmate assert_function
 #' @importFrom checkmate reportAssertions
-#' @export
 unlockKeys <- function(connections,
                        keyring,
                        connectFUN  = NULL,
