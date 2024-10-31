@@ -354,7 +354,7 @@ unlockKeys <- function(connections,
     connectionFUNs <- vector('list', n)
     for(i in seq(n)) connectionFUNs[[i]] <- function(key, ...) connectFUN(key, ...)
   }
-  browser()
+
    ###########################################################################
   ## Do it
   .unlockAlgorithm(connections,
