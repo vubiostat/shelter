@@ -1,7 +1,6 @@
 context("unlockKeys")
 
 library(mockery)
-library(keyring)
 library(checkmate)
 
 test_that(
