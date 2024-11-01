@@ -22,7 +22,8 @@
 
 #' @importFrom filelock lock
 #' @importFrom filelock unlock
-with_lock <- function(file, expr) {
+with_lock <- function(file, expr)
+{
   timeout <- getOption("keyring_file_lock_timeout", 1000)
   lockfile <- paste0(file, ".lck")
   l <- lock(lockfile, timeout = timeout)
@@ -32,7 +33,8 @@ with_lock <- function(file, expr) {
 }
 
 #' @importFrom sodium hex2bin
-read_file <- function(keyring) {
+read_file <- function(keyring)
+{
   file_name <- keyring_file(keyring)
   with_lock(file_name, {
     stamp <- file_stamp(keyring)
