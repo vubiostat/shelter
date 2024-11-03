@@ -1,78 +1,109 @@
-# MIT License
-# Copyright (c) 2003 Alec Wong, Gábor Csárdi, Posit Software, PBC
-# Copyright (c) 2024 Shawn Garbett, Cole Beck, Vanderbilt University Medical Center
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the “Software”), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
+# Basic utilities for a keyring in R
 #
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
+# Copyright (C) 2024 Shawn Garbett, Cole Beck, Vanderbilt University Medical Center
 #
-# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+KEYRING_EXT   <- '.keyring.RDS'
+KEYRING_REGEX <- '\\.keyring\\.RDS$'
+
+
+#' @importFrom rappdirs user_config_dir
+keyring_dir <- function() user_config_dir("r-keyring")
+
+keyring_file <- function(keyring)
+  file.path(keyring_dir(), paste0(keyring, KEYRING_EXT))
 
 #' @importFrom filelock lock
 #' @importFrom filelock unlock
-with_lock <- function(file, expr)
+atomic_op <- function(keyring, expr)
 {
-  timeout <- getOption("keyring_file_lock_timeout", 1000)
-  lockfile <- paste0(file, ".lck")
-  l <- lock(lockfile, timeout = timeout)
-  if (is.null(l)) stop("Cannot lock keyring file")
+  l <- lock(paste0(keyring_file(keyring), ".lck"),
+            timeout = getOption("shelter_lock_timeout", 1000))
+  if (is.null(l))
+    stop(sprintf("Unable to get lock for keyring '`%s`'.", keyring))
   on.exit(unlock(l), add = TRUE)
   expr
 }
 
-#' @importFrom sodium hex2bin
-read_file <- function(keyring)
+#' Check if a keyring exists.
+#'
+#' Given a keyring name will check if the keyring file exists.
+#'
+#' @param keyring character(1); Name of the keyring.
+#' @return boolean(1); Keyring file store existence status.
+#' @export
+keyring_exists <- function(keyring) file.exists(keyring_file(keyring))
+
+# Internal assertion that a keyring exists and halt if it doesn't
+keyring_assert_exists <- function(keyring)
+  if(!keyring_exists(keyring))
+    stop(sprintf("Keyring '`%s`' does not exist.", keyring))
+
+# keyring_store    :: Keyring -> KeyringData -> IO ()
+#' importFrom sodium data_encrypt
+#' importFrom sodium hash
+#' importFrom sodium data_tag
+#' importFrom sodium random
+keyring_store <- function(keyring, data)
 {
-  file_name <- keyring_file(keyring)
-  with_lock(file_name, {
-    stamp <- file_stamp(keyring)
-    yml <- readRDS(file_name)
-#     yml <- yaml::yaml.load_file(file_name)
-  })
+  file       <- keyring_file(keyring)
+  x          <- as.list(data)
+  password   <- hash(charToRaw(x$password))
+  x$password <- NULL
+  x$version  <- as.character(getNamespaceVersion('shelter'))
 
-  assertthat::assert_that(
-    is_list_with_names(yml, names = c("keyring_info", "items")),
-    is_list_with_names(
-      yml[["keyring_info"]],
-      names = c("keyring_version", "nonce", "integrity_check")
-    )
-  )
+  # In case of no key_pairs, maintain a random check
+  x$check    <- data_encrypt(random(32), password)
 
-  list(
-    nonce = hex2bin(yml[["keyring_info"]][["nonce"]]),
-    items = lapply(yml[["items"]], validate_item),
-    check = yml[["keyring_info"]][["integrity_check"]],
-    stamp = stamp
-  )
-}
-
-#' @importFrom sodium bin2hex data_decrypt
-write_file <- function(keyring, key = NULL, nonce = NULL, items = NULL) {
-  file_name <- keyring_file(keyring)
-  if(is.null(nonce) || is.null(items)) {
-    cached <- get_cache(keyring)
-    nonce <- unless(nonce, cached$nonce)
-    items <- unless(items, cached$items)
+  # Encrypt keypairs
+  if(!is.null(x$key_pairs))
+  {
+    for(i in seq_along(x$key_pairs))
+      x$key_pairs[[i]] <- data_encrypt(charToRaw(x$key_pairs[[i]]), password)
   }
-  key <- unless(key, get_keyring_pass(keyring))
-  rand_letters <- paste(sample(letters, 22L, replace = TRUE), collapse = "")
-  kr_info <- list(
-    keyring_version = as.character(getNamespaceVersion('shelter')),
-    nonce = bin2hex(nonce),
-    integrity_check = secret_encrypt(rand_letters, nonce, key)
-  )
-#   with_lock(file_name, yaml::write_yaml(list(keyring_info = kr_info), file_name))
-  with_lock(file_name, saveRDS(list(keyring_info = kr_info, items = items), file = file_name))
+
+  atomic_op(file, saveRDS(x, file))
 }
+
+# keyring_retrieve :: Keyring -> Password -> IO KeyringEnv
+#' @importFrom sodium data_decrypt
+#' @importFrom sodium hash
+#' @importFrom sodium data_tag
+keyring_retrieve <- function(keyring, password)
+{
+  keyring_assert_exists(keyring)
+
+  file       <- keyring_file(keyring)
+
+  atomic_op(file, x <- readRDS(file))
+  x$password <- password
+
+  password   <- hash(charToRaw(password))
+
+  tryCatch(
+    if(is.null(x$key_pairs))
+    {
+      data_decrypt(x$check, password)
+    } else
+    {
+      for(i in seq_along(x$key_pairs))
+        x$key_pairs[[i]] <- rawToChar(data_decrypt(x$key_pairs[[i]], password))
+    },
+    error=function(e) if(grepl('Failed to decrypt')) return(NULL) else stop(e)
+  )
+
+  x
+}
+
