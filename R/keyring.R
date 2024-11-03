@@ -15,7 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-
 # Local environment to store keyring states
 shelter_env <- new.env(parent = emptyenv())
 
@@ -31,10 +30,19 @@ keyring_env <- function(keyring)
 #' Given the name of a keyring lock it.
 #'
 #' @param character(1); Name of keyring
-#' @return boolean(1); Success or failure of operation
+#' @return logical(1); Success or failure of operation
 #' @export
+#' @importFrom checkmate makeAssertCollection
+#' @importFrom checkmate assert_string
+#' @importFrom checkmate assert_disjunct
+#' @importFrom checkmate reportAssertions
 keyring_lock <- function(keyring)
 {
+  # Argument validation
+  coll <- makeAssertCollection()
+  assert_string(keyring, add=coll)
+  reportAssertions(coll)
+
   shelter_env[[keyring]] <- NULL
 }
 
@@ -43,10 +51,15 @@ keyring_lock <- function(keyring)
 #' Given the name of a keyring, delete it and remove all cached information.
 #'
 #' @param character(1); Name of keyring
-#' @return boolean(1); Success or failure of operation
+#' @return logical(1); Success or failure of operation
 #' @export
 keyring_delete <- function(keyring)
 {
+  # Argument validation
+  coll <- makeAssertCollection()
+  assert_string(keyring, add=coll)
+  reportAssertions(coll)
+
   keyring_lock(keyring)
   unlink(keyring_file(keyring), force = TRUE) == 0
 }
@@ -56,11 +69,22 @@ keyring_delete <- function(keyring)
 #' Query if a keyring is unlocked
 #'
 #' @param character(1); Name of keyring
-#' @return boolean(1); Success or failure of operation
+#' @return logical(1); Success or failure of operation
 #' @export
 keyring_locked <- function(keyring)
 {
+  # Argument validation
+  coll <- makeAssertCollection()
+  assert_string(keyring, add=coll)
+  reportAssertions(coll)
+
   is.null(shelter_env[[keyring]])
+}
+
+keyring_assert_unlocked <- function(keyring)
+{
+  if(keyring_locked(keyring))
+    stop(sprintf("Keyring '`%s`' is not unlocked.", keyring))
 }
 
 #' Provides a `data.frame` of information on available keyrings.
@@ -98,5 +122,61 @@ keyring_list <- function()
   )
 }
 
-# keyring_create :: KeyRing -> Password -> Bool  # creates memory and disk
-# keyring_unlock :: KeyRing -> Password -> Bool  # reads and loads into memory
+#' Create a new empty keyring.
+#'
+#' Create a new empty keyring with of a given name with the specified password.
+#'
+#' @param character(1); Name of keyring
+#' @param character(1); Password for keyring
+#' @return logical(1); Success or failure of operation
+#' @export
+keyring_create <- function(keyring, password)
+{
+  # Argument validation
+  coll <- makeAssertCollection()
+  assert_string(keyring, add=coll)
+  assert_string(password, add=coll)
+  if(length(password) == 1)
+  {
+    if(!grepl("[\\$!@#%\\^&\\*\\(\\)\\-_\\+\\=\\{\\}\\:;<>,\\.~0-9]", password))
+      coll$push("Variable 'password': Must contain a special character or number.")
+    if(password %in% common_passwords)
+      coll$push("Variable 'password': Occurs in common password list which creates security risk.")
+    if(nchar(password) < 8)
+      coll$push("Variable 'password': Must be at least 8 characters.")
+  }
+  if(length(keyring) == 1 && keyring %in% keyring_list()$keyring)
+    coll$push(sprintf("Variable 'keyring': Specifies a keyring '%s' that already exists.", keyring))
+
+  reportAssertions(coll)
+
+  x <- keyring_store(keyring, list(password=password))
+
+  shelter_env[[keyring]] <- x
+
+  !is.null(x)
+}
+
+#' Unlock a keyring.
+#'
+#' Unlock a given keyring using the specified password. Secrets exist
+#' in plain text in memory while a keyring is unlocked.
+#'
+#' @param character(1); Name of keyring
+#' @param character(1); Password for keyring
+#' @return logical(1); Success or failure of operation
+#' @export
+keyring_unlock <- function(keyring, password)
+{
+  # Argument validation
+  coll <- makeAssertCollection()
+  assert_string(keyring,  add=coll)
+  assert_string(password, add=coll)
+  reportAssertions(coll)
+
+  x <- keyring_retrieve(keyring, password)
+
+  shelter_env[[keyring]] <- x
+
+  !is.null(x)
+}

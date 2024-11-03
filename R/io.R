@@ -42,7 +42,7 @@ atomic_op <- function(keyring, expr)
 #' Given a keyring name will check if the keyring file exists.
 #'
 #' @param keyring character(1); Name of the keyring.
-#' @return boolean(1); Keyring file store existence status.
+#' @return logical(1); Keyring file store existence status.
 #' @export
 keyring_exists <- function(keyring) file.exists(keyring_file(keyring))
 
@@ -52,10 +52,10 @@ keyring_assert_exists <- function(keyring)
     stop(sprintf("Keyring '`%s`' does not exist.", keyring))
 
 # keyring_store    :: Keyring -> KeyringData -> IO ()
-#' importFrom sodium data_encrypt
-#' importFrom sodium hash
-#' importFrom sodium data_tag
-#' importFrom sodium random
+#' @importFrom sodium data_encrypt
+#' @importFrom sodium hash
+#' @importFrom sodium data_tag
+#' @importFrom sodium random
 keyring_store <- function(keyring, data)
 {
   file       <- keyring_file(keyring)
@@ -68,13 +68,18 @@ keyring_store <- function(keyring, data)
   x$check    <- data_encrypt(random(32), password)
 
   # Encrypt keypairs
-  if(!is.null(x$key_pairs))
+  if(is.null(x$key_pairs))
+  {
+    x$key_pairs <- list()
+  } else
   {
     for(i in seq_along(x$key_pairs))
       x$key_pairs[[i]] <- data_encrypt(charToRaw(x$key_pairs[[i]]), password)
   }
 
-  atomic_op(file, saveRDS(x, file))
+  atomic_op(keyring, saveRDS(x, file))
+  x$password <- password
+  list2env(x)
 }
 
 # keyring_retrieve :: Keyring -> Password -> IO KeyringEnv
@@ -87,7 +92,7 @@ keyring_retrieve <- function(keyring, password)
 
   file       <- keyring_file(keyring)
 
-  atomic_op(file, x <- readRDS(file))
+  atomic_op(keyring, x <- readRDS(file))
   x$password <- password
 
   password   <- hash(charToRaw(password))
@@ -104,6 +109,6 @@ keyring_retrieve <- function(keyring, password)
     error=function(e) if(grepl('Failed to decrypt')) return(NULL) else stop(e)
   )
 
-  x
+  list2env(x)
 }
 
