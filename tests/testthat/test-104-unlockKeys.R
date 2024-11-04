@@ -12,15 +12,11 @@ test_that(
     keyring <- 'sheltertest'
 
     # In case of previous test failing
-    try(delete(keyring), TRUE)
+    try(keyring_delete(keyring), TRUE)
 
-    create(keyring, 'abc123')
+    keyring_create(keyring, 'abc123@#$')
 
-    key_set_with_value(
-          keyring,
-          'shelter',
-          'testdb',
-          '123')
+    key_set(keyring,'testdb','123')
 
     m <- mock('ABC')
 
@@ -28,12 +24,12 @@ test_that(
       c(rcon='testdb'),
       keyring,
       function(x, ...) m(x, ...),
-      passwordFUN = function(...) 'abc123',
+      passwordFUN = function(...) 'abc123@#$',
       abc=456))
     expect_true("rcon" %in% names(x))
     expect_equal(x$rcon, 'ABC')
 
-    delete(keyring)
+    keyring_delete(keyring)
 
     # Check the "..." passing
     expect_called(m, 1)

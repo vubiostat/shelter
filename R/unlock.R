@@ -120,19 +120,17 @@
       if(!stored) password <- passwordFUN(msg)
       if(is.null(password) || password == '') stop(paste0("User aborted keyring '",keyring, "' unlock."))
 
-      tryCatch(
-        {
-          keyring_unlock(keyring, password)
-          .savePWGlobalEnv(password)
-          locked <- FALSE
-        },
-        error = function(e)
-        {
-          if(stored) .clearPWGlobalEnv()
+      if(keyring_unlock(keyring, password))
+      {
+        keyring_unlock(keyring, password)
+        .savePWGlobalEnv(password)
+        locked <- FALSE
+      } else
+      {
+        if(stored) .clearPWGlobalEnv()
 
-          msg <<-  paste0("Provided password failed. Please enter password to unlock API keyring '",keyring, "'.")
-        }
-      )
+        msg <<-  paste0("Provided password failed. Please enter password to unlock API keyring '",keyring, "'.")
+      }
     }
   } else # Keyring does not exist => Create
   {
@@ -191,11 +189,11 @@
   # Open Connections
   dest <- lapply(seq_along(connections), function(i)
   {
-    stored <- connections[i] %in% (key_list(keyring, service))[,2]
+    stored <- connections[i] %in% key_list(keyring)
 
     api_key <- if(stored)
     {
-      key_get(keyring, service, connections[i])
+      key_get(keyring, connections[i])
     } else
     {
       passwordFUN(paste0("Please enter API key for '", connections[i], "'."))
@@ -209,7 +207,7 @@
       conn <- (connectionFUNs[[i]])(api_key, ...)
       if(is.null(conn))
       {
-        key_delete(keyring, service, unname(connections[i]))
+        key_delete(keyring, unname(connections[i]))
         api_key <- passwordFUN(paste0(
           "Invalid API key for '", connections[i],
           "' in keyring '", keyring,
@@ -218,9 +216,8 @@
         if(is.null(api_key) || api_key == '') stop("unlockAPIKEY aborted")
       } else if(!stored)
       {
-        key_set_with_value(
+        key_set(
           keyring,
-          service,
           unname(connections[i]),
           api_key)
       }
@@ -243,7 +240,7 @@
 #' locked.
 #'
 #' If one forgets the password to this keyring, or wishes to start over:
-#' `keyring::keyring_delete("<NAME_OF_KEY_RING_HERE>")`
+#' `keyring_delete("<NAME_OF_KEY_RING_HERE>")`
 #'
 #' For production servers where the password must be stored in a readable
 #' plain text file, it will search for `../<basename>.yml`. DO NOT USE
