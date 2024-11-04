@@ -75,12 +75,12 @@ keyring_delete <- function(keyring)
 #' @export
 keyring_locked <- function(keyring)
 {
-  keyring_assert_exists(keyring)
-
   # Argument validation
   coll <- makeAssertCollection()
   assert_string(keyring, add=coll)
   reportAssertions(coll)
+
+  keyring_assert_exists(keyring)
 
   is.null(shelter_env[[keyring]])
 }
