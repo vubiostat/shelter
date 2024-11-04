@@ -7,11 +7,17 @@
 keyring_lock(keyring)
 }
 \arguments{
-\item{character(1);}{Name of keyring}
+\item{keyring}{character(1); Name of keyring}
 }
 \value{
 logical(1); Success or failure of operation
 }
 \description{
 Given the name of a keyring lock it.
+}
+\examples{
+\dontrun{
+keyring_lock('mypersonalkeyring')
+}
+
 }

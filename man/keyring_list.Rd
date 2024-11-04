@@ -7,12 +7,12 @@
 keyring_list()
 }
 \value{
-data.frame of {keyring, secrets, locked}
+data.frame of (keyring, secrets, locked)
 }
 \description{
 Looks in a local directory where keyrings are stored for the
 current user and returns information about keyrings found.
-Keyrings are stored in `rappdirs::user_config_dir("r-keyring")`
+Keyrings are stored in `rappdirs::user_config_dir("r-shelter")`
 and end in `.keyring.RDS`
 }
 \examples{

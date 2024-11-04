@@ -15,3 +15,8 @@ character; Key names
 \description{
 Return vector key names in a keyring that is unlocked.
 }
+\examples{
+\dontrun{
+key_list('mypersonalkeyring')
+}
+}

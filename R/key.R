@@ -23,6 +23,10 @@
 #' @param keyring character(1); Name of keyring
 #' @param key character(1); Name of key
 #' @return logical(1); Existance of key in keyring
+#' @examples
+#' \dontrun{
+#' key_exists('mypersonalkeyring', 'key1')
+#' }
 #' @export
 key_exists <- function(keyring, key)
 {
@@ -43,6 +47,12 @@ key_exists <- function(keyring, key)
 #' @param keyring character(1); Name of keyring
 #' @param key character(1); Name of key
 #' @return character(1); The requested secret
+#'
+#' @examples
+#' \dontrun{
+#' key_get('mypersonalkeyring', 'key1')
+#' }
+#'
 #' @export
 key_get <- function(keyring, key)
 {
@@ -63,6 +73,12 @@ key_get <- function(keyring, key)
 #' @param keyring character(1); Name of keyring
 #' @param key character(1); Name of key
 #' @return logical(1); Success of operation
+#'
+#' @examples
+#' \dontrun{
+#' key_delete('mypersonalkeyring', 'key1')
+#' }
+#'
 #' @export
 key_delete <- function(keyring, key)
 {
@@ -87,6 +103,10 @@ key_delete <- function(keyring, key)
 #' @param keyring character(1); Name of keyring
 #' @return character; Key names
 #' @export
+#' @examples
+#' \dontrun{
+#' key_list('mypersonalkeyring')
+#' }
 key_list <- function(keyring)
 {
   coll <- makeAssertCollection()
@@ -107,6 +127,10 @@ key_list <- function(keyring)
 #' @param secret character(1); The secret to store in keyring
 #' @return logical(1); Status of operation
 #' @export
+#' @examples
+#' \dontrun{
+#' key_set('mypersonalkeyring','key1','a secret')
+#' }
 key_set <- function(keyring, key, secret)
 {
   coll <- makeAssertCollection()

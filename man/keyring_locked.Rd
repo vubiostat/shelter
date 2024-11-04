@@ -7,11 +7,17 @@
 keyring_locked(keyring)
 }
 \arguments{
-\item{character(1);}{Name of keyring}
+\item{keyring}{character(1); Name of keyring}
 }
 \value{
 logical(1); Success or failure of operation
 }
 \description{
 Query if a keyring is unlocked
+}
+\examples{
+\dontrun{
+keyring_locked('mypersonalkeyring')
+}
+
 }

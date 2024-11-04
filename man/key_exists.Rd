@@ -17,3 +17,8 @@ logical(1); Existance of key in keyring
 \description{
 In an unlocked keyring return if a key exists.
 }
+\examples{
+\dontrun{
+key_exists('mypersonalkeyring', 'key1')
+}
+}

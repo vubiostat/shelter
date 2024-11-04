@@ -19,3 +19,8 @@ logical(1); Status of operation
 \description{
 Sets a key secret in a keyring
 }
+\examples{
+\dontrun{
+key_set('mypersonalkeyring','key1','a secret')
+}
+}

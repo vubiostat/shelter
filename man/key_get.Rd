@@ -17,3 +17,9 @@ character(1); The requested secret
 \description{
 Get a secret from an unlocked keyring given it's key.
 }
+\examples{
+\dontrun{
+key_get('mypersonalkeyring', 'key1')
+}
+
+}

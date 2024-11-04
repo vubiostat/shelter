@@ -1,6 +1,5 @@
 context("Key argument validation")
 
-
 test_that("key_* keyring doesn't allow multiple", {
   local_reproducible_output(width = 200)
   keyring <- c('sheltertest', 'bridgetoofar')
@@ -12,7 +11,6 @@ test_that("key_* keyring doesn't allow multiple", {
   expect_error(key_delete(keyring, key), error)
   expect_error(key_set(   keyring, key, secret), error)
 })
-
 
 test_that("key_* keyring doesn't allow non string type", {
   local_reproducible_output(width = 200)

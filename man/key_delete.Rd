@@ -17,3 +17,9 @@ logical(1); Success of operation
 \description{
 Delete a key from an unlocked keyring.
 }
+\examples{
+\dontrun{
+key_delete('mypersonalkeyring', 'key1')
+}
+
+}
