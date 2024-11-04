@@ -8,7 +8,7 @@ password <- 'qwer$ty7'
 test_that(
   "keyring_create will create necessary directories",{
     td <- tempdir()
-    options(shelter_keyring_dir=td)
+    options(shelter_keyring_dir=file.path(td, "more"))
     expect_true(keyring_create(keyring,password))
     options(shelter_keyring_dir=NULL)
     unlink(td)
