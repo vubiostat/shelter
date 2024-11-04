@@ -23,6 +23,7 @@
 #' do not use any dictionary word without adding some special characters.
 #'
 #' Original source: https://github.com/danielmiessler/SecLists/blob/master/Passwords/Common-Credentials/10k-most-common.txt
+#' Filter to be 8 characters or greater.
 #'
 #' @export
 #'
