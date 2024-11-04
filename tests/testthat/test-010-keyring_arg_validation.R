@@ -1,4 +1,4 @@
-context("Keyring argument validationn")
+context("Keyring argument validation")
 
 keyring_delete('sheltertest')
 
