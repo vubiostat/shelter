@@ -140,18 +140,9 @@ keyring_create <- function(keyring, password)
   coll <- makeAssertCollection()
   assert_string(keyring, add=coll)
   assert_string(password, add=coll)
-  if(length(password) == 1)
-  {
-    if(!grepl("[\\$!@#%\\^&\\*\\(\\)\\-_\\+\\=\\{\\}\\:;<>,\\.~0-9]", password))
-      coll$push("Variable 'password': Must contain a special character or number.")
-    if(tolower(password) %in% common_passwords)
-      coll$push("Variable 'password': Occurs in common password list which creates security risk.")
-    if(nchar(password) < 8)
-      coll$push("Variable 'password': Must be at least 8 characters.")
-  }
+  if(length(password) == 1) assert_password_requirements(password, coll)
   if(length(keyring) == 1 && keyring %in% keyring_list()$keyring)
     coll$push(sprintf("Variable 'keyring': Specifies a keyring '%s' that already exists.", keyring))
-
   reportAssertions(coll)
 
   x <- keyring_store(keyring, list(password=password))

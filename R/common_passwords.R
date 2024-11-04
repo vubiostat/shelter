@@ -2115,3 +2115,18 @@ common_passwords <- c(
 "hugohugo",
 "evangeli"
 )
+
+assert_password_requirements <- function(password, coll)
+{
+  if(length(password) == 1)
+  {
+    if(!grepl("[\\$!@#%\\^&\\*\\(\\)\\-_\\+\\=\\{\\}\\:;<>,\\.~0-9]", password))
+      coll$push("Variable 'password': Must contain a special character or number.")
+    if(tolower(password) %in% common_passwords)
+      coll$push("Variable 'password': Occurs in common password list which creates security risk.")
+    if(nchar(password) < 8)
+      coll$push("Variable 'password': Must be at least 8 characters.")
+  }
+
+  coll
+}
