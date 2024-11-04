@@ -18,7 +18,7 @@ test_that(
     .unlockKeyring("API_KEYs", passwordFUN)
 
     expect_true(calls == 0) # No requests for password from user
-    expect_true(Sys.getenv("REDCAPAPI_PW") == "xyz")
+    expect_true(Sys.getenv("SHELTER_PW") == "xyz")
   }
 )
 
@@ -38,7 +38,7 @@ test_that(
     .unlockKeyring("API_KEYs", passwordFUN)
 
     expect_true(calls == 1) # Requests password
-    expect_true(Sys.getenv('REDCAPAPI_PW') == "xyz")
+    expect_true(Sys.getenv('SHELTER_PW') == "xyz")
   }
 )
 
@@ -79,7 +79,7 @@ test_that(
     .unlockKeyring("API_KEYs", passwordFUN)
 
     expect_true(calls == 1) # Requests password
-    expect_true(Sys.getenv("REDCAPAPI_PW") == "xyz")
+    expect_true(Sys.getenv("SHELTER_PW") == "xyz")
   }
 )
 
