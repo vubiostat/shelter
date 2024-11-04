@@ -58,7 +58,7 @@ locked.
 }
 \details{
 If one forgets the password to this keyring, or wishes to start over:
-`keyring::keyring_delete("<NAME_OF_KEY_RING_HERE>")`
+`keyring_delete("<NAME_OF_KEY_RING_HERE>")`
 
 For production servers where the password must be stored in a readable
 plain text file, it will search for `../<basename>.yml`. DO NOT USE
@@ -99,7 +99,7 @@ lockBinding(oldfun, pkgenv)
 \examples{
 \dontrun{
 unlockKeys(c(test_conn    = 'Testshelter',
-               sandbox_conn = 'SandboxAPI'),
+             sandbox_conn = 'SandboxAPI'),
              keyring      = '<NAME_OF_KEY_RING_HERE>',
              envir        = globalenv(),
              passwordFUN  = function(x, ...) x)

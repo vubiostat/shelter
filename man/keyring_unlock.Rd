@@ -7,7 +7,9 @@
 keyring_unlock(keyring, password)
 }
 \arguments{
-\item{character(1);}{Password for keyring}
+\item{keyring}{character(1); Name of keyring}
+
+\item{password}{character(1); Password for keyring}
 }
 \value{
 logical(1); Success or failure of operation
@@ -15,4 +17,8 @@ logical(1); Success or failure of operation
 \description{
 Unlock a given keyring using the specified password. Secrets exist
 in plain text in memory while a keyring is unlocked.
+}
+\examples{
+\dontrun{keyring_unlock('mypersonalkeyring', '<PASSWORD>')}
+
 }

@@ -29,13 +29,19 @@ keyring_env <- function(keyring)
 #'
 #' Given the name of a keyring lock it.
 #'
-#' @param character(1); Name of keyring
+#' @param keyring character(1); Name of keyring
 #' @return logical(1); Success or failure of operation
 #' @export
 #' @importFrom checkmate makeAssertCollection
 #' @importFrom checkmate assert_string
 #' @importFrom checkmate assert_disjunct
 #' @importFrom checkmate reportAssertions
+#'
+#' @examples
+#' \dontrun{
+#' keyring_lock('mypersonalkeyring')
+#' }
+#'
 keyring_lock <- function(keyring)
 {
   # Argument validation
@@ -52,8 +58,14 @@ keyring_lock <- function(keyring)
 #'
 #' Given the name of a keyring, delete it and remove all cached information.
 #'
-#' @param character(1); Name of keyring
+#' @param keyring character(1); Name of keyring
 #' @return logical(1); Success or failure of operation
+#'
+#' @examples
+#' \dontrun{
+#' keyring_delete('mypersonalkeyring')
+#' }
+#'
 #' @export
 keyring_delete <- function(keyring)
 {
@@ -70,8 +82,14 @@ keyring_delete <- function(keyring)
 #'
 #' Query if a keyring is unlocked
 #'
-#' @param character(1); Name of keyring
+#' @param keyring character(1); Name of keyring
 #' @return logical(1); Success or failure of operation
+#'
+#' @examples
+#' \dontrun{
+#' keyring_locked('mypersonalkeyring')
+#' }
+#'
 #' @export
 keyring_locked <- function(keyring)
 {
@@ -98,7 +116,7 @@ keyring_assert_unlocked <- function(keyring)
 #' Keyrings are stored in `rappdirs::user_config_dir("r-shelter")`
 #' and end in `.keyring.RDS`
 #'
-#' @return data.frame of {keyring, secrets, locked}
+#' @return data.frame of (keyring, secrets, locked)
 #'
 #' @examples
 #' keyring_list()
@@ -130,9 +148,15 @@ keyring_list <- function()
 #'
 #' Create a new empty keyring with of a given name with the specified password.
 #'
-#' @param character(1); Name of keyring
-#' @param character(1); Password for keyring
+#' @param keyring character(1); Name of keyring
+#' @param password character(1); Password for keyring
 #' @return logical(1); Success or failure of operation
+#'
+#' @examples
+#' \dontrun{
+#' keyring_create('mypersonalkeyring', '<PASSWORD>')
+#' }
+#'
 #' @export
 keyring_create <- function(keyring, password)
 {
@@ -157,9 +181,13 @@ keyring_create <- function(keyring, password)
 #' Unlock a given keyring using the specified password. Secrets exist
 #' in plain text in memory while a keyring is unlocked.
 #'
-#' @param character(1); Name of keyring
-#' @param character(1); Password for keyring
+#' @param keyring character(1); Name of keyring
+#' @param password character(1); Password for keyring
 #' @return logical(1); Success or failure of operation
+#'
+#' @examples
+#' \dontrun{keyring_unlock('mypersonalkeyring', '<PASSWORD>')}
+#'
 #' @export
 keyring_unlock <- function(keyring, password)
 {

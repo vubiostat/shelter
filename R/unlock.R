@@ -42,6 +42,7 @@
  ## unlock via YAML override if it exists
 ##
 #' @importFrom yaml read_yaml
+#' @importFrom utils modifyList
 .unlockYamlOverride <- function(connections, connectionFUNs, service, ...)
 {
   config_file <- file.path("..", paste0(basename(getwd()),".yml"))
@@ -80,6 +81,7 @@
   #############################################################################
  ## unlock via ENV override if it exists
 ##
+#' @importFrom utils modifyList
 .unlockENVOverride <- function(connections, connectionFUNs, ...)
 {
   api_key_ENV <- sapply(connections, function(x) Sys.getenv(toupper(x)))
@@ -315,7 +317,7 @@
 #' @examples
 #' \dontrun{
 #' unlockKeys(c(test_conn    = 'Testshelter',
-#'                sandbox_conn = 'SandboxAPI'),
+#'              sandbox_conn = 'SandboxAPI'),
 #'              keyring      = '<NAME_OF_KEY_RING_HERE>',
 #'              envir        = globalenv(),
 #'              passwordFUN  = function(x, ...) x)

@@ -7,11 +7,19 @@
 keyring_create(keyring, password)
 }
 \arguments{
-\item{character(1);}{Password for keyring}
+\item{keyring}{character(1); Name of keyring}
+
+\item{password}{character(1); Password for keyring}
 }
 \value{
 logical(1); Success or failure of operation
 }
 \description{
 Create a new empty keyring with of a given name with the specified password.
+}
+\examples{
+\dontrun{
+keyring_create('mypersonalkeyring', '<PASSWORD>')
+}
+
 }

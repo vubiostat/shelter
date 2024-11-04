@@ -5,15 +5,19 @@
 \alias{common_passwords}
 \title{A list of common passwords}
 \format{
-An object of class \code{character} of length 2.
+An object of class \code{character} of length 2086.
 }
 \usage{
 common_passwords
 }
 \description{
 Dictionary attacks using lists of common passwords are the simplest
-most effective attack against any crytpo. Using a password on
-this list effectively destroys any possibility of security. In general
+most effective attack against any cryptographic algorithm. Use of a password
+on this list circumvents any measure of security provided. In general
 do not use any dictionary word without adding some special characters.
+}
+\details{
+Original source: https://github.com/danielmiessler/SecLists/blob/master/Passwords/Common-Credentials/10k-most-common.txt
+Filter to be 8 characters or greater.
 }
 \keyword{datasets}
