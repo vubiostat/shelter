@@ -133,12 +133,23 @@
     }
   } else # Keyring does not exist => Create
   {
-    password <- passwordFUN(paste0("Creating keyring. Enter NEW password for the keyring '",
-                                   keyring, "'."))
-    if(is.null(password) || password == '') stop(paste0("User cancelled creation of keyring '", keyring, "'."))
+    password <- NULL
+    msg      <- paste0("Creating keyring. Enter NEW password for the keyring '",
+                                     keyring, "'.")
+    while(is.null(password))
+    {
+      password <- passwordFUN(msg)
+      if(is.null(password) || password == '') stop(paste0("User cancelled creation of keyring '", keyring, "'."))
 
-    keyring_create(keyring, password)
-    .savePWGlobalEnv(password)
+      problems <- assert_password_requirements(password, makeAssertCollection())
+      if(!problems$isEmpty())
+      {
+        msg <- paste(c("Please enter a better password.", problems$getMessages()), collapse="\n")
+        password <- NULL
+      }
+    }
+
+    if(keyring_create(keyring, password)) .savePWGlobalEnv(password)
   }
   NULL
 }

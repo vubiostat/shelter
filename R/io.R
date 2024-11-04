@@ -20,7 +20,7 @@ KEYRING_REGEX <- '\\.keyring\\.RDS$'
 
 
 #' @importFrom rappdirs user_config_dir
-keyring_dir <- function() user_config_dir("r-keyring")
+keyring_dir <- function() getOption("shelter_keyring_dir", user_config_dir("r-shelter"))
 
 keyring_file <- function(keyring)
   file.path(keyring_dir(), paste0(keyring, KEYRING_EXT))
@@ -77,6 +77,8 @@ keyring_store <- function(keyring, data)
     for(i in seq_along(x$key_pairs))
       x$key_pairs[[i]] <- data_encrypt(charToRaw(x$key_pairs[[i]]), password)
   }
+
+  dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
 
   atomic_op(keyring, saveRDS(x, file))
   x$password <- password

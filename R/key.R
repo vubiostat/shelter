@@ -26,6 +26,11 @@
 #' @export
 key_exists <- function(keyring, key)
 {
+  coll <- makeAssertCollection()
+  assert_string(keyring, add=coll)
+  assert_string(key,     add=coll)
+  reportAssertions(coll)
+
   keyring_assert_unlocked(keyring)
 
   key %in% names(shelter_env[[keyring]]$key_pairs)
@@ -41,6 +46,11 @@ key_exists <- function(keyring, key)
 #' @export
 key_get <- function(keyring, key)
 {
+  coll <- makeAssertCollection()
+  assert_string(keyring, add=coll)
+  assert_string(key,     add=coll)
+  reportAssertions(coll)
+
   keyring_assert_unlocked(keyring)
 
   shelter_env[[keyring]]$key_pairs[[key]]
@@ -56,6 +66,11 @@ key_get <- function(keyring, key)
 #' @export
 key_delete <- function(keyring, key)
 {
+  coll <- makeAssertCollection()
+  assert_string(keyring, add=coll)
+  assert_string(key,     add=coll)
+  reportAssertions(coll)
+
   keyring_assert_unlocked(keyring)
 
   shelter_env[[keyring]]$key_pairs[[key]] <- NULL
@@ -74,6 +89,10 @@ key_delete <- function(keyring, key)
 #' @export
 key_list <- function(keyring)
 {
+  coll <- makeAssertCollection()
+  assert_string(keyring, add=coll)
+  reportAssertions(coll)
+
   keyring_assert_unlocked(keyring)
 
   names(shelter_env[[keyring]]$key_pairs)
@@ -90,6 +109,12 @@ key_list <- function(keyring)
 #' @export
 key_set <- function(keyring, key, secret)
 {
+  coll <- makeAssertCollection()
+  assert_string(keyring, add=coll)
+  assert_string(key,     add=coll)
+  assert_string(secret,  add=coll)
+  reportAssertions(coll)
+
   keyring_assert_unlocked(keyring)
 
   shelter_env[[keyring]]$key_pairs[[key]] <- secret

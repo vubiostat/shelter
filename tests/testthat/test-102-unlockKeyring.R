@@ -93,20 +93,19 @@ test_that(
     m <- mock(TRUE)
 
     calls <- 0
-    passwordFUN <- function(...) {calls <<- calls + 1; "xyz"}
+    passwordFUN <- function(...) {calls <<- calls + 1; "xyz%$xyz"}
     stub(.unlockKeyring, "keyring_create", m)
     stub(.unlockKeyring, "keyring_list", ukr)
 
     .unlockKeyring("MakeMe", passwordFUN)
 
     expect_call(m, 1, keyring_create(keyring,password))
-    expect_equal(mock_args(m)[[1]], list("MakeMe", "xyz"))
+    expect_equal(mock_args(m)[[1]], list("MakeMe", "xyz%$xyz"))
     expect_true(calls == 1) # Asks user for password
-    expect_true(Sys.getenv("SHELTER_PW") == "xyz") # Stores result
+    expect_true(Sys.getenv("SHELTER_PW") == "xyz%$xyz") # Stores result
     Sys.unsetenv("SHELTER_PW")
   }
 )
-
 
 test_that(
   ".unlockKeyring creates keyring respects user cancel",
