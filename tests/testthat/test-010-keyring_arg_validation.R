@@ -63,7 +63,7 @@ test_that("kerying_create doesn't allow simple passwords", {
   keyring <- 'sheltertest'
   expect_error(keyring_create(keyring, 'qwerty'),
     "Variable 'password': Must contain a special character")
-  expect_error(keyring_create(keyring, 'qwerty'),
+  expect_error(keyring_create(keyring, 'StarStar'),
     "Variable 'password': Occurs in common password list")
   expect_error(keyring_create(keyring, 'qwerty'),
     "Variable 'password': Must be at least 8 characters")
