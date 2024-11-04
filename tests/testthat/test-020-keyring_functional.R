@@ -10,9 +10,10 @@ test_that(
     td <- tempdir()
     options(shelter_keyring_dir=file.path(td, "more"))
     expect_true(keyring_create(keyring,password))
-    options(shelter_keyring_dir=NULL)
     unlink(td)
 })
+
+options(shelter_keyring_dir=NULL)
 
 test_that(
   "keyring_delete doesn't throw an error if it doesn't exists",
