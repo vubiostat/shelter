@@ -10,7 +10,7 @@ test_that(
                              num_secrets=0:2,
                              locked=rep(TRUE, 3)))
     stub(.unlockKeyring, ".getPWGlobalEnv", "xyz")
-    stub(.unlockKeyring, "keyring_unlock", NULL)
+    stub(.unlockKeyring, "keyring_unlock", TRUE)
 
     calls <- 0
     passwordFUN <- function(...) {calls <<- calls + 1}
@@ -30,7 +30,7 @@ test_that(
                              num_secrets=0:2,
                              locked=rep(TRUE, 3)))
     stub(.unlockKeyring, ".getPWGlobalEnv", "")
-    stub(.unlockKeyring, "keyring_unlock", NULL)
+    stub(.unlockKeyring, "keyring_unlock", TRUE)
 
     calls <- 0
     passwordFUN <- function(...) {calls <<- calls + 1; "xyz"}
@@ -50,7 +50,7 @@ test_that(
                              num_secrets=0:2,
                              locked=rep(TRUE, 3)))
     stub(.unlockKeyring, ".getPWGlobalEnv", "")
-    stub(.unlockKeyring, "keyring_unlock", NULL)
+    stub(.unlockKeyring, "keyring_unlock", TRUE)
 
     calls <- 0
     passwordFUN <- function(...) {calls <<- calls + 1; ""}
@@ -71,8 +71,7 @@ test_that(
                              locked=rep(TRUE, 3)))
     stub(.unlockKeyring, "Sys.getenv",
                   mock("fail", ""))
-    stub(.unlockKeyring, "keyring_unlock",
-                  mock(stop("fail"), "joe"))
+    stub(.unlockKeyring, "keyring_unlock", mock(FALSE, TRUE))
 
     calls <- 0
     passwordFUN <- function(...) {calls <<- calls + 1; "xyz"}
@@ -89,22 +88,22 @@ test_that(
   {
     Sys.unsetenv("SHELTER_PW")
     ukr <- mock(data.frame(keyring=c("Elsewhere", "API_KEYs", "JoesGarage"),
-                             num_secrets=0:2,
-                             locked=rep(TRUE, 3)))
+                           secrets=0:2,
+                           locked=rep(TRUE, 3)))
     m <- mock(TRUE)
 
     calls <- 0
     passwordFUN <- function(...) {calls <<- calls + 1; "xyz"}
-    stub(.unlockKeyring, "create", m)
+    stub(.unlockKeyring, "keyring_create", m)
     stub(.unlockKeyring, "keyring_list", ukr)
 
     .unlockKeyring("MakeMe", passwordFUN)
 
-    expect_call(m, 1, create(keyring,password))
+    expect_call(m, 1, keyring_create(keyring,password))
     expect_equal(mock_args(m)[[1]], list("MakeMe", "xyz"))
     expect_true(calls == 1) # Asks user for password
-    expect_true(Sys.getenv("REDCAPAPI_PW") == "xyz") # Stores result
-    Sys.unsetenv("REDCAPAPI_PW")
+    expect_true(Sys.getenv("SHELTER_PW") == "xyz") # Stores result
+    Sys.unsetenv("SHELTER_PW")
   }
 )
 
@@ -115,7 +114,7 @@ test_that(
     Sys.unsetenv("SHELTER_PW")
     stub(.unlockKeyring, "keyring_list",
          data.frame(keyring=c("Elsewhere", "API_KEYs", "JoesGarage"),
-                    num_secrets=0:2,
+                    secrets=0:2,
                     locked=rep(TRUE, 3)))
     m <- mock(TRUE)
 
@@ -127,7 +126,7 @@ test_that(
         expect_error(.unlockKeyring("MakeMe", passwordFUN), "User cancelled")
         expect_called(m, 0)
       },
-      create = m
+      keyring_create = m
     )
 
     expect_true(calls == 1) # Asks user for password
