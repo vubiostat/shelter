@@ -59,7 +59,7 @@ keyring_assert_exists <- function(keyring)
 keyring_store <- function(keyring, data)
 {
   file       <- keyring_file(keyring)
-  x          <- as.list(data)
+  x          <- data
   password   <- x$password
   if(!is.raw(password)) password <- hash(charToRaw(x$password))
   x$password <- NULL
@@ -80,7 +80,8 @@ keyring_store <- function(keyring, data)
 
   atomic_op(keyring, saveRDS(x, file))
   x$password <- password
-  list2env(x)
+
+  data
 }
 
 # keyring_retrieve :: Keyring -> Password -> IO KeyringEnv
@@ -93,7 +94,7 @@ keyring_retrieve <- function(keyring, password)
 
   file       <- keyring_file(keyring)
 
-  atomic_op(keyring, x <- readRDS(file))
+  x <- atomic_op(keyring, readRDS(file))
   x$password <- password
 
   password   <- hash(charToRaw(password))
@@ -107,9 +108,9 @@ keyring_retrieve <- function(keyring, password)
       for(i in seq_along(x$key_pairs))
         x$key_pairs[[i]] <- rawToChar(data_decrypt(x$key_pairs[[i]], password))
     },
-    error=function(e) if(grepl('Failed to decrypt')) return(NULL) else stop(e)
+    error=function(e) if(grepl('Failed to decrypt',e$message)) return(NULL) else stop(e)
   )
 
-  list2env(x)
+  if(any(sapply(x$key_pairs, is.raw))) NULL else x
 }
 
