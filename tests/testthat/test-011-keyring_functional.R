@@ -37,6 +37,7 @@ test_that("keyring_exists post creation",
 test_that("keyring_list shows created keyring",{
   expect_silent(x <- keyring_list())
   x <- x[x$keyring == keyring,]
+  rownames(x) <- NULL
   expect_true(nrow(x) == 1)
   expect_equal(x, data.frame(keyring=keyring, secrets=0, locked=FALSE))
 })
