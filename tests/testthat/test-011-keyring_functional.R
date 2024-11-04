@@ -103,12 +103,29 @@ test_that("key_* function ERROR when called on closed keyring",{
   expect_error(key_set(   keyring, 'key1', 'x'), error)
 })
 
-# keyring_unlock (wrong password) FALSE
-# keyring_locked TRUE
-# keyring_unlock (right password) TRUE
-# key_delete key1
-# key_list [key2]
-# keyring_locked FALSE
+test_that("keyring_unlock with invalid password returns FALSE",
+  expect_false(keyring_unlock(keyring, 'baadfadf'))
+)
+
+test_that("keyring_locked post locking",
+  expect_true(keyring_locked(keyring))
+)
+
+test_that("keyring_unlock with correct password returns TRUE",
+  expect_true(keyring_unlock(keyring, password))
+)
+
+test_that("keyring_locked FALSE post unlock",
+  expect_false(keyring_locked(keyring))
+)
+
+test_that("key_delete can delete a key",
+  expect_true(key_delete(keyring, 'key1'))
+)
+
+test_that("key_list has the key remaining",
+  expect_contains(key_list(keyring), "key2")
+)
 
 test_that(
   "keyring_delete can delete an existing keyring",
