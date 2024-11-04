@@ -138,7 +138,7 @@
                                    keyring, "'."))
     if(is.null(password) || password == '') stop(paste0("User cancelled creation of keyring '", keyring, "'."))
 
-    create(keyring, password)
+    keyring_create(keyring, password)
     .savePWGlobalEnv(password)
   }
   NULL
