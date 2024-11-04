@@ -16,26 +16,26 @@
 
 .savePWGlobalEnv <- function(password)
 {
-  Sys.setenv(REDCAPAPI_PW=password)
+  Sys.setenv(SHELTER_PW=password)
 
   # Hacked work around for RStudio starting new session for everything
   if(requireNamespace("rstudioapi", quietly = TRUE) &&
      rstudioapi::isAvailable(child_ok=TRUE))
-    rstudioapi::sendToConsole(sprintf("Sys.setenv(REDCAPAPI_PW='%s')", password), execute = TRUE, echo=FALSE, focus=FALSE)
+    rstudioapi::sendToConsole(sprintf("Sys.setenv(SHELTER_PW='%s')", password), execute = TRUE, echo=FALSE, focus=FALSE)
 }
 
 .clearPWGlobalEnv <- function()
 {
-  Sys.unsetenv("REDCAPAPI_PW")
+  Sys.unsetenv("SHELTER_PW")
   # Hacked work around for RStudio starting new session for everything
   if(requireNamespace("rstudioapi", quietly = TRUE) &&
      rstudioapi::isAvailable(child_ok=TRUE))
-    rstudioapi::sendToConsole('Sys.unsetenv("REDCAPAPI_PW")', execute = TRUE, echo=FALSE, focus=FALSE)
+    rstudioapi::sendToConsole('Sys.unsetenv("SHELTER_PW")', execute = TRUE, echo=FALSE, focus=FALSE)
 }
 
 .getPWGlobalEnv <- function()
 {
-  Sys.getenv("REDCAPAPI_PW")
+  Sys.getenv("SHELTER_PW")
 }
 
   #############################################################################
@@ -122,7 +122,6 @@
 
       if(keyring_unlock(keyring, password))
       {
-        keyring_unlock(keyring, password)
         .savePWGlobalEnv(password)
         locked <- FALSE
       } else
