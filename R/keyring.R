@@ -44,6 +44,8 @@ keyring_lock <- function(keyring)
   reportAssertions(coll)
 
   shelter_env[[keyring]] <- NULL
+
+  TRUE
 }
 
 #' Delete a given keyring

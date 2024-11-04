@@ -107,9 +107,14 @@ test_that("key_* function ERROR when called on closed keyring",{
 # keyring_locked TRUE
 # keyring_unlock (right password) TRUE
 # key_delete key1
-# key_list [key1]
+# key_list [key2]
 # keyring_locked FALSE
-# kerying_delete TRUE
-#
-#
-#
+
+test_that(
+  "keyring_delete can delete an existing keyring",
+  expect_true(keyring_delete(keyring))
+)
+test_that(
+  "keyring_exists is FALSE post delete",
+  expect_false(keyring_exists(keyring))
+)
