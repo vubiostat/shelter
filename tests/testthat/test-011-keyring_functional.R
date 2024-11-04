@@ -6,6 +6,15 @@ keyring  <- 'sheltertest'
 password <- 'qwer$ty7'
 
 test_that(
+  "keyring_create will create necessary directories",{
+    td <- tempdir()
+    options(shelter_keyring_dir=td)
+    expect_true(keyring_create(keyring,password))
+    options(shelter_keyring_dir=NULL)
+    unlink(td)
+})
+
+test_that(
   "keyring_delete doesn't throw an error if it doesn't exists",
   expect_true(keyring_delete(keyring))
 )
@@ -132,7 +141,10 @@ test_that(
   "keyring_delete can delete an existing keyring",
   expect_true(keyring_delete(keyring))
 )
+
 test_that(
   "keyring_exists is FALSE post delete",
   expect_false(keyring_exists(keyring))
 )
+
+
