@@ -18,8 +18,8 @@
 #' A list of common passwords
 #'
 #' Dictionary attacks using lists of common passwords are the simplest
-#' most effective attack against any crytpo. Using a password on
-#' this list effectively destroys any possibility of security. In general
+#' most effective attack against any cryptographic algorithm. Use of a password
+#' on this list circumvents any measure of security provided. In general
 #' do not use any dictionary word without adding some special characters.
 #'
 #' Original source: https://github.com/danielmiessler/SecLists/blob/master/Passwords/Common-Credentials/10k-most-common.txt

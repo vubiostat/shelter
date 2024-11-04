@@ -61,14 +61,14 @@ keyring_store <- function(keyring, data)
   file       <- keyring_file(keyring)
   x          <- data
   password   <- x$password
-  if(!is.raw(password)) password <- hash(charToRaw(x$password))
+  password   <- hash(charToRaw(x$password))
   x$password <- NULL
   x$version  <- as.character(getNamespaceVersion('shelter'))
 
   # In case of no key_pairs, maintain a random check
   x$check    <- data_encrypt(random(32), password)
 
-  # Encrypt keypairs
+  # Encrypt key pairs
   if(is.null(x$key_pairs))
   {
     x$key_pairs <- list()
