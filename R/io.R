@@ -60,7 +60,8 @@ keyring_store <- function(keyring, data)
 {
   file       <- keyring_file(keyring)
   x          <- as.list(data)
-  password   <- hash(charToRaw(x$password))
+  password   <- x$password
+  if(!is.raw(password)) password <- hash(charToRaw(x$password))
   x$password <- NULL
   x$version  <- as.character(getNamespaceVersion('shelter'))
 
