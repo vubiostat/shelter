@@ -1,7 +1,7 @@
 ## 0.1.1
 
 * Minor cleanup
-* Removed remote possibility of local memory missync.
+* Removed remote possibility of local memory cache issue.
 
 ## 0.1.0
 
