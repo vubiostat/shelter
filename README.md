@@ -63,7 +63,8 @@ library(redcapAPI)
 unlockKeys(
   c('splunk', 'redcap'),
   'mykeyring',
-  list(connectSplunk, connectREDCap),
+  list(connectSplunk,
+       function(key) function(key) connectAndCheck(key, '<URL>')),
   envir=1
 )
 
