@@ -103,6 +103,7 @@ keyring_locked <- function(keyring)
   is.null(shelter_env[[keyring]])
 }
 
+# Turns keyring_locked into a stop assertion if locked
 keyring_assert_unlocked <- function(keyring)
 {
   if(keyring_locked(keyring))

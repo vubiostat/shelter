@@ -18,18 +18,21 @@
 KEYRING_EXT   <- '.keyring.RDS'
 KEYRING_REGEX <- '\\.keyring\\.RDS$'
 
-
+# Returns directory to store keyrings in
 #' @importFrom rappdirs user_config_dir
-keyring_dir <- function() getOption("shelter_keyring_dir", user_config_dir("r-shelter"))
+keyring_dir <- function()
+  getOption("shelter_keyring_dir", user_config_dir("r-shelter"))
 
+# Given a keyring name, returns the encypted keyring file location
 keyring_file <- function(keyring)
   file.path(keyring_dir(), paste0(keyring, KEYRING_EXT))
 
+# This routine ensures no overlapping writes between processes
 #' @importFrom filelock lock
 #' @importFrom filelock unlock
-atomic_op <- function(keyring, expr)
+atomic_op <- function(file, expr)
 {
-  l <- lock(paste0(keyring_file(keyring), ".lck"),
+  l <- lock(paste0(file, ".lck"),
             timeout = getOption("shelter_lock_timeout", 1000))
   if (is.null(l))
     stop(sprintf("Unable to get lock for keyring '`%s`'.", keyring))
@@ -80,7 +83,7 @@ keyring_store <- function(keyring, data)
 
   dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
 
-  atomic_op(keyring, saveRDS(x, file))
+  atomic_op(file, saveRDS(x, file))
   x$password <- password
 
   data
@@ -96,23 +99,25 @@ keyring_retrieve <- function(keyring, password)
 
   file       <- keyring_file(keyring)
 
-  x <- atomic_op(keyring, readRDS(file))
+  x <- atomic_op(file, readRDS(file))
   x$password <- password
 
   password   <- hash(charToRaw(password))
 
   tryCatch(
-    if(is.null(x$key_pairs))
     {
-      data_decrypt(x$check, password)
-    } else
-    {
-      for(i in seq_along(x$key_pairs))
-        x$key_pairs[[i]] <- rawToChar(data_decrypt(x$key_pairs[[i]], password))
+      if(is.null(x$key_pairs))
+      {
+        data_decrypt(x$check, password)
+      } else
+      {
+        for(i in seq_along(x$key_pairs))
+          x$key_pairs[[i]] <- rawToChar(data_decrypt(x$key_pairs[[i]], password))
+      }
+      x
     },
-    error=function(e) if(grepl('Failed to decrypt',e$message)) return(NULL) else stop(e)
+    error=function(e)
+      if(grepl('Failed to decrypt',e$message)) return(NULL) else stop(e)
   )
-
-  if(any(sapply(x$key_pairs, is.raw))) NULL else x
 }
 
