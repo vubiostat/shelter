@@ -1,3 +1,6 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.github$
+^tests/testthat.R$
+^tests/testthat/local-token.R$
+^tests/testthat/local-token.Rdata$

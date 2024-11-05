@@ -15,18 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-#' A list of common passwords
-#'
-#' Dictionary attacks using lists of common passwords are the simplest
-#' most effective attack against any cryptographic algorithm. Use of a password
-#' on this list circumvents any measure of security provided. In general
-#' do not use any dictionary word without adding some special characters.
-#'
-#' Original source: https://github.com/danielmiessler/SecLists/blob/master/Passwords/Common-Credentials/10k-most-common.txt
-#' Filter to be 8 characters or greater.
-#'
-#' @export
-#'
+
 common_passwords <- c(
 "password",
 "12345678",
