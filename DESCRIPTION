@@ -1,6 +1,6 @@
 Package: shelter
 Type: Package
-Title: Support for secure API key management
+Title: Support for Secure API Key Management
 Version: 0.1.0
 Authors@R: c(
     person("Benjamin", "Nutter", email = "benjamin.nutter@gmail.com", 
@@ -16,12 +16,11 @@ Maintainer: Shawn Garbett <Shawn.Garbett@vumc.org>
 Description: Secure handling of API keys can be difficult. This package provides
     secure convenience functions for 
     entering / handling API keys and opening connections via inversion of control
-    on those keys. Works seemlessly between production and developer environments.
+    on those keys. Works seamlessly between production and developer environments.
 Depends:
     R (>= 3.5.0)
 License: GPL-3 
 Encoding: UTF-8
-LazyData: true
 Imports: checkmate,
          getPass,
          yaml,
