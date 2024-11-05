@@ -35,7 +35,7 @@ atomic_op <- function(file, expr)
   l <- lock(paste0(file, ".lck"),
             timeout = getOption("shelter_lock_timeout", 1000))
   if (is.null(l))
-    stop(sprintf("Unable to get lock for keyring '`%s`'.", keyring))
+    stop(sprintf("Unable to get lock for file '`%s`'.", file))
   on.exit(unlock(l), add = TRUE)
   expr
 }
