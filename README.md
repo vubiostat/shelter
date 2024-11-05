@@ -18,6 +18,13 @@ The goals of this package are to do the following:
 * Work consistently across Windows, Mac OS and Linux. 
 * Support testing keys via inversion of control using a specified function.
 
+### Encryption Details
+
+* Encryption: [XSalsa20](https://en.wikipedia.org/wiki/Salsa20) stream cipher
+* Authentication: [Poly1305](https://en.wikipedia.org/wiki/Poly1305) MAC
+
+In 2013, Mouha and Preneel published a proof^[Nicky Mouha; Bart Preneel (2013). "Towards Finding Optimal Differential Characteristics for ARX: Application to Salsa20". _International Association for Cryptologic Research_.] that 15 rounds of Salsa20 was 128-bit secure against differential cryptoanalysis. It has no differential characteristic with higher probability than 2^−130, so differential cryptoanalysis would be more difficult than 128-bit key exhaustion.
+
 ## Quick Start Guide
 
 One simply needs to include the library and specify a connection function. Here
