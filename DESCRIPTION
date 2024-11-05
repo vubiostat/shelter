@@ -1,7 +1,7 @@
 Package: shelter
 Type: Package
 Title: Support for Secure API Key Management
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person("Benjamin", "Nutter", email = "benjamin.nutter@gmail.com", 
            role = c("ctb", "aut")),
@@ -18,7 +18,7 @@ Description: Secure handling of API keys can be difficult. This package provides
     entering / handling API keys and opening connections via inversion of control
     on those keys. Works seamlessly between production and developer environments.
 Depends:
-    R (>= 3.5.0)
+    R (>= 4.1.0)
 License: GPL-3 
 Encoding: UTF-8
 Imports: checkmate,
@@ -30,3 +30,4 @@ Imports: checkmate,
 Suggests: testthat (>= 3.0.0), rstudioapi, mockery
 URL: https://github.com/vubiostat/shelter
 RoxygenNote: 7.3.2
+BugReports: https://github.com/vubiostat/shelter/issues

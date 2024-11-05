@@ -1,0 +1,8 @@
+## 0.1.1
+
+* Minor cleanup
+* Removed remote possibility of local memory missync.
+
+## 0.1.0
+
+* Initial release

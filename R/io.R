@@ -57,13 +57,11 @@ keyring_assert_exists <- function(keyring)
 # keyring_store    :: Keyring -> KeyringData -> IO ()
 #' @importFrom sodium data_encrypt
 #' @importFrom sodium hash
-#' @importFrom sodium data_tag
 #' @importFrom sodium random
 keyring_store <- function(keyring, data)
 {
   file       <- keyring_file(keyring)
   x          <- data
-  password   <- x$password
   password   <- hash(charToRaw(x$password))
   x$password <- NULL
   x$version  <- as.character(getNamespaceVersion('shelter'))
@@ -84,7 +82,6 @@ keyring_store <- function(keyring, data)
   dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
 
   atomic_op(file, saveRDS(x, file))
-  x$password <- password
 
   data
 }
@@ -92,7 +89,6 @@ keyring_store <- function(keyring, data)
 # keyring_retrieve :: Keyring -> Password -> IO KeyringEnv
 #' @importFrom sodium data_decrypt
 #' @importFrom sodium hash
-#' @importFrom sodium data_tag
 keyring_retrieve <- function(keyring, password)
 {
   keyring_assert_exists(keyring)

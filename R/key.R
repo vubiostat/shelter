@@ -91,7 +91,9 @@ key_delete <- function(keyring, key)
 
   shelter_env[[keyring]]$key_pairs[[key]] <- NULL
 
-  x <- keyring_store(keyring, shelter_env[[keyring]])
+  x <- shelter_env[[keyring]]
+  shelter_env[[keyring]] <- NULL
+  x <- keyring_store(keyring, x)
   shelter_env[[keyring]] <- x
   !is.null(x)
 }
@@ -143,7 +145,9 @@ key_set <- function(keyring, key, secret)
 
   shelter_env[[keyring]]$key_pairs[[key]] <- secret
 
-  x <- keyring_store(keyring, shelter_env[[keyring]])
+  x <- shelter_env[[keyring]]
+  shelter_env[[keyring]] <- NULL
+  x <- keyring_store(keyring, x)
   shelter_env[[keyring]] <- x
   !is.null(x)
 }
