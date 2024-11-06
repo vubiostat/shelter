@@ -18,6 +18,29 @@ The goals of this package are to do the following:
 * Work consistently across Windows, Mac OS and Linux. 
 * Support testing keys via inversion of control using a specified function.
 
+### Important Note
+
+Use of this package alone is insufficient for good security. One must make sure to never save workspace to .Rdata on exit and never set
+cache=TRUE in `quarto` or `rmarkdown` files for a block that contains private health information (PHI) or private identifying information (PII).
+
+In RStudio, look under `Tools -> Global Options -> General` and make sure save is set to NEVER and load is not clicked. This should be done for history as well. 
+
+For base R the following can be ensured using `usethis::edit_r_profile()` and adding this code:
+
+```
+newfun <- function (save = "no", status = 0, runLast = TRUE)
+  .Internal(quit(save, status, runLast))
+pkg <- 'base'
+oldfun <- 'q'
+pkgenv <- as.environment(paste0("package:", pkg))
+unlockBinding(oldfun, pkgenv)
+utils::assignInNamespace(oldfun, newfun, ns = pkg, envir = pkgenv)
+assign(oldfun, newfun, pkgenv)
+lockBinding(oldfun, pkgenv)
+```
+
+Further making sure if one needs to store PHI/PII locally that is always stored to an encrypted volume in some form is important. 
+
 ### Encryption Details
 
 * Encryption: [XSalsa20](https://en.wikipedia.org/wiki/Salsa20) stream cipher
