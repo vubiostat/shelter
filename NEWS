@@ -1,3 +1,9 @@
+## 0.2.0
+
+* Added automatic conversion of older keyring package lockers. Note: If user
+code has direct calls to keyring package to manipulate keys, then this
+could fail in unexpected ways.
+
 ## 0.1.1
 
 * Minor cleanup
