@@ -14,9 +14,26 @@ The goals of this package are to do the following:
 
 * Store API keys in a backend file using best cryptography practices.
 * Interact with a developer to create a local keyring of secrets and once created minimize interaction required. 
-* Pull from ENV or a local YAML file in a development environment as an override.
+* Pull from ENV or a local YAML file in a production environment as an override.
 * Work consistently across Windows, Mac OS and Linux. 
 * Support testing keys via inversion of control using a specified function.
+
+### Differences from `keyring`
+
+Why not use the package `keyring`? What sets this package apart from `keyring`?
+These are relevant questions and the answer depends upon your needs.
+
+The `keyring` package assumes the user is managing their keys and it's goal was
+to work with the difference system based keyrings, e.g. Mac vs PC, in a
+consistent manner. This package originally used `keyring` but it wasn't a 
+perfect fit for the needs and goals we had. A user still had to write and manage
+code to deal with keyrings--and that code had poor portability to production
+environments.
+
+This package works on the command line, inside RStudio and in automated
+production environments. It does everything it can to hide the details of 
+key storage from the user. User flow and state is complex and tricky, but if
+handled properly makes dealing with secrets mostly hidden. 
 
 ### Important Note
 
@@ -113,14 +130,14 @@ principal recommended function to use.
 ## Back Matter
 
 The keyring management code was inspired by the [keyring](https://github.com/r-lib/keyring) package, but is
-a complete rewrite to match different project goals. Special thanks to [Gábor Csárdi](https://github.com/gaborcsardi) for his work over the years leading
+a complete rewrite to match this project's goals. Special thanks to [Gábor Csárdi](https://github.com/gaborcsardi) for his work over the years leading
 to this current work.
 
 ### License
 
 `shelter` A method to securely deal with API keys across multiple environments
 
-Copyright (C) 2023-2024 Shawn Garbett, Cole Beck, Hui Wu, Benjamin Nutter, Savannah Obregon, Vanderbilt University Medical Center
+Copyright (C) 2023-2025 Shawn Garbett, Cole Beck, Hui Wu, Benjamin Nutter, Savannah Obregon, Vanderbilt University Medical Center
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
