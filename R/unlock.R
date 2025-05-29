@@ -17,6 +17,7 @@
   #############################################################################
  ## invisibly convert existing keyring lockers to new shelter
 ##
+## This function should be removed after 7/1/2026
 .build_a_bridge <- function(keyring, passwordFUN)
 {
   msg   <- paste0("Please enter password to unlock API keyring '",keyring, "'.")
@@ -68,7 +69,7 @@
   # Gather old keys
   old_names <- keyring::key_list("redcapAPI", keyring)$username
 
-  # If there are any, then roll foward to new method
+  # If there are any, then roll forward to new method
   if(length(old_names) > 0)
   {
     old_keys  <- lapply(old_names, function(x) keyring::key_get("redcapAPI", x, keyring))
@@ -81,6 +82,7 @@
     shelter_env[[keyring]] <- keyring_store(keyring,
                                             list(password=password,
                                             key_pairs=old_keys))
+    message("Upgraded existing `keyring` package keyring to `shelter` keyring.")
   }
 }
 
