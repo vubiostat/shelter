@@ -34,8 +34,13 @@
 
   password <- .getPWGlobalEnv()
 
-  # Unlock old if locked
   locked <- old_ring$locked
+
+  # Cannot bridge forward if password is unknown and old keyring unlocked
+  # Fail silently -- forces user to create new crypto locker
+  if(is.null(password) && !locked) return(NULL)
+
+  # Unlock old if locked
   while(locked)
   {
     password <- .getPWGlobalEnv()
@@ -60,16 +65,21 @@
 
   # Gather old keys
   old_names <- keyring::key_list("redcapAPI", keyring)$username
-  old_keys  <- lapply(old_names, function(x) keyring::key_get("redcapAPI", x, keyring))
-  names(old_keys) <- old_names
 
-  # Store in new shelter
-  # NOTE: This evades normal functional calls to shelter because
-  #       password may not meet current standards. May break
-  #       if internal key storage method in package is changed.
-  shelter_env[[keyring]] <- keyring_store(keyring,
-                                          list(password=password,
-                                               key_pairs=old_keys))
+  # If there are any, then roll foward to new method
+  if(length(old_names) > 0)
+  {
+    old_keys  <- lapply(old_names, function(x) keyring::key_get("redcapAPI", x, keyring))
+    names(old_keys) <- old_names
+
+    # Store in new shelter
+    # NOTE: This evades normal functional calls to shelter because
+    #       password may not meet current standards. May break
+    #       if internal key storage method in package is changed.
+    shelter_env[[keyring]] <- keyring_store(keyring,
+                                            list(password=password,
+                                            key_pairs=old_keys))
+  }
 }
 
 .savePWGlobalEnv <- function(password)
