@@ -24,7 +24,7 @@ Why not use the package `keyring`? What sets this package apart from `keyring`?
 These are relevant questions and the answer depends upon your needs.
 
 The `keyring` package assumes the user is managing their keys and it's goal was
-to work with the difference system based keyrings, e.g. Mac vs PC, in a
+to work with the different system based keyrings, e.g. Mac vs PC, in a
 consistent manner. This package originally used `keyring` but it wasn't a 
 perfect fit for the needs and goals we had. A user still had to write and manage
 code to deal with keyrings--and that code had poor portability to production
