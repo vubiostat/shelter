@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024 Vanderbilt University Medical Center,
+# Copyright (C) 2021-2025 Vanderbilt University,
 # Shawn Garbett, Cole Beck, Hui Wu, Benjamin Nutter, Savannah Obregon
 #
 # This program is free software: you can redistribute it and/or modify
@@ -13,6 +13,78 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+  #############################################################################
+ ## invisibly convert existing keyring lockers to new shelter
+##
+## This function should be removed after 7/1/2026
+.build_a_bridge <- function(keyring, passwordFUN)
+{
+  msg   <- paste0("Please enter password to unlock API keyring '",keyring, "'.")
+
+  # If a shelter ring exists no bridge is needed
+  new_ring <- keyring_list()
+  new_ring <- new_ring[new_ring$keyring==keyring,]
+  if(nrow(new_ring) > 0) return(NULL)
+
+  # If the keyring package is not installed, nothing to build bridge with
+  if(!requireNamespace('keyring', quietly = TRUE)) return(NULL)
+
+  # If a keyring::keyring doesn't exist then no bridge can be built
+  old_ring <- keyring::keyring_list()
+  old_ring <- old_ring[old_ring$keyring==keyring,]
+  if(nrow(old_ring) == 0) return(NULL)
+
+  password <- .getPWGlobalEnv()
+
+  locked <- old_ring$locked
+
+  # Cannot bridge forward if password is unknown and old keyring unlocked
+  # Fail silently -- forces user to create new crypto locker
+  if(is.null(password) && !locked) return(NULL)
+
+  # Unlock old if locked
+  while(locked)
+  {
+    password <- .getPWGlobalEnv()
+    stored   <- !is.null(password) && password != ''
+    if(!stored) password <- passwordFUN(msg)
+    if(is.null(password) || password == '') stop(paste0("User aborted keyring '",keyring, "' unlock."))
+
+    tryCatch(
+      {
+        keyring::keyring_unlock(keyring, password)
+        .savePWGlobalEnv(password)
+        locked <- FALSE
+      },
+      error = function(e)
+      {
+        if(stored) .clearPWGlobalEnv()
+
+        msg <<-  paste0("Provided password failed. Please enter password to unlock API keyring '",keyring, "'.")
+      }
+    )
+  }
+
+  # Gather old keys
+  old_names <- keyring::key_list("redcapAPI", keyring)$username
+
+  # If there are any, then roll forward to new method
+  if(length(old_names) > 0)
+  {
+    old_keys  <- lapply(old_names, function(x) keyring::key_get("redcapAPI", x, keyring))
+    names(old_keys) <- old_names
+
+    # Store in new shelter
+    # NOTE: This evades normal functional calls to shelter because
+    #       password may not meet current standards. May break
+    #       if internal key storage method in package is changed.
+    shelter_env[[keyring]] <- keyring_store(keyring,
+                                            list(password=password,
+                                            key_pairs=old_keys))
+    message("Upgraded existing `keyring` package keyring to `shelter` keyring.")
+  }
+}
 
 .savePWGlobalEnv <- function(password)
 {
@@ -106,9 +178,12 @@
 ##
 .unlockKeyring <- function(keyring, passwordFUN)
 {
+  msg   <- paste0("Please enter password to unlock API keyring '",keyring, "'.")
+
+  .build_a_bridge(keyring, passwordFUN) # Convert old keyring to new
+
   state <- keyring_list()
   state <- state[state$keyring==keyring,]
-  msg   <- paste0("Please enter password to unlock API keyring '",keyring, "'.")
 
   # If so, does it exist?
   if(nrow(state) == 1) # Exists => UNLOCK

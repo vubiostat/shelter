@@ -1,14 +1,14 @@
 Package: shelter
 Type: Package
 Title: Support for Secure API Key Management
-Version: 0.1.1
+Version: 0.2.0
 Authors@R: c(
     person("Benjamin", "Nutter", email = "benjamin.nutter@gmail.com", 
            role = c("ctb", "aut")),
     person("Shawn", "Garbett", email = "Shawn.Garbett@vumc.org",
            comment = c(ORCID="0000-0003-4079-5621"),
            role = c("cre","ctb")),
-    person("Hui",      "Wu",       email = "Hui.Wu@vumc.org",               role = c("aut")),
+    person("Hui",      "Wu",               role = c("aut")),
     person("Cole",     "Beck",     email = "Cole.Beck@vumc.org",            role = c("aut")),
     person("Savannah", "Obregon",  email = "Savannah.Obregon@vumc.org",     role = c("aut"))
   )
@@ -27,7 +27,7 @@ Imports: checkmate,
          filelock,
          rappdirs,
          sodium
-Suggests: testthat (>= 3.0.0), rstudioapi, mockery
+Suggests: testthat (>= 3.0.0), rstudioapi, mockery, keyring
 URL: https://github.com/vubiostat/shelter
 RoxygenNote: 7.3.2
 BugReports: https://github.com/vubiostat/shelter/issues
