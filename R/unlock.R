@@ -17,8 +17,10 @@
   #############################################################################
  ## invisibly convert existing keyring lockers to new shelter
 ##
-.build_a_bridge <- function(keyring, passwordFUN, msg)
+.build_a_bridge <- function(keyring, passwordFUN)
 {
+  msg   <- paste0("Please enter password to unlock API keyring '",keyring, "'.")
+
   # If a shelter ring exists no bridge is needed
   new_ring <- keyring_list()
   new_ring <- new_ring[new_ring$keyring==keyring,]
@@ -176,7 +178,7 @@
 {
   msg   <- paste0("Please enter password to unlock API keyring '",keyring, "'.")
 
-  .build_a_bridge(keyring, passwordFUN, msg) # Convert old keyring to new
+  .build_a_bridge(keyring, passwordFUN) # Convert old keyring to new
 
   state <- keyring_list()
   state <- state[state$keyring==keyring,]
