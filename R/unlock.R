@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2025 Vanderbilt University
+# Copyright (C) 2021-2025 Vanderbilt University,
 # Shawn Garbett, Cole Beck, Hui Wu, Benjamin Nutter, Savannah Obregon
 #
 # This program is free software: you can redistribute it and/or modify
@@ -17,6 +17,7 @@
   #############################################################################
  ## invisibly convert existing keyring lockers to new shelter
 ##
+## This function should be removed after 7/1/2026
 .build_a_bridge <- function(keyring, passwordFUN)
 {
   msg   <- paste0("Please enter password to unlock API keyring '",keyring, "'.")
