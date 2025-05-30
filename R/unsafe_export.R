@@ -32,6 +32,7 @@
 #' \dontrun{
 #' cat(unsafe_export('mypersonalkeyring', 'yaml'), file="myproject.yml")
 #' }
+#' @returns A character(1) string of the desired export.
 #' @importFrom checkmate assert_string
 #' @importFrom checkmate assertLogical
 #' @importFrom checkmate makeAssertCollection

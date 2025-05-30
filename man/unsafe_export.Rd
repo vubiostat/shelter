@@ -15,6 +15,9 @@ unsafe_export(keyring, format, yaml_tag = "shelter", warn = TRUE)
 
 \item{warn}{boolean(1); Should the user be warned of the dangers. Defaults to TRUE.}
 }
+\value{
+A character(1) string of the desired export.
+}
 \description{
 This functions exports a keyring to a file as a convenience function
 for production deployments.
