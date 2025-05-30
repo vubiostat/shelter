@@ -17,8 +17,10 @@
   #############################################################################
  ## invisibly convert existing keyring lockers to new shelter
 ##
-.build_a_bridge <- function(keyring, passwordFUN, msg)
+.build_a_bridge <- function(keyring, passwordFUN)
 {
+  msg   <- paste0("Please enter password to unlock API keyring '",keyring, "'.")
+
   # If a shelter ring exists no bridge is needed
   new_ring <- keyring_list()
   new_ring <- new_ring[new_ring$keyring==keyring,]
@@ -34,8 +36,13 @@
 
   password <- .getPWGlobalEnv()
 
-  # Unlock old if locked
   locked <- old_ring$locked
+
+  # Cannot bridge forward if password is unknown and old keyring unlocked
+  # Fail silently -- forces user to create new crypto locker
+  if(is.null(password) && !locked) return(NULL)
+
+  # Unlock old if locked
   while(locked)
   {
     password <- .getPWGlobalEnv()
@@ -60,16 +67,22 @@
 
   # Gather old keys
   old_names <- keyring::key_list("redcapAPI", keyring)$username
-  old_keys  <- lapply(old_names, function(x) keyring::key_get("redcapAPI", x, keyring))
-  names(old_keys) <- old_names
 
-  # Store in new shelter
-  # NOTE: This evades normal functional calls to shelter because
-  #       password may not meet current standards. May break
-  #       if internal key storage method in package is changed.
-  shelter_env[[keyring]] <- keyring_store(keyring,
-                                          list(password=password,
-                                               key_pairs=old_keys))
+  # If there are any, then roll forward to new method
+  if(length(old_names) > 0)
+  {
+    old_keys  <- lapply(old_names, function(x) keyring::key_get("redcapAPI", x, keyring))
+    names(old_keys) <- old_names
+
+    # Store in new shelter
+    # NOTE: This evades normal functional calls to shelter because
+    #       password may not meet current standards. May break
+    #       if internal key storage method in package is changed.
+    shelter_env[[keyring]] <- keyring_store(keyring,
+                                            list(password=password,
+                                                 key_pairs=old_keys))
+    message("Upgraded existing `keyring` package keyring to `shelter` keyring.")
+  }
 }
 
 .savePWGlobalEnv <- function(password)
@@ -168,7 +181,7 @@
 {
   msg   <- paste0("Please enter password to unlock API keyring '",keyring, "'.")
 
-  .build_a_bridge(keyring, passwordFUN, msg) # Convert old keyring to new
+  .build_a_bridge(keyring, passwordFUN) # Convert old keyring to new
 
   state <- keyring_list()
   state <- state[state$keyring==keyring,]
