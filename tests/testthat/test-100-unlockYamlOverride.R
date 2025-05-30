@@ -54,7 +54,7 @@ test_that(
     stub(.unlockYamlOverride, "file.exists", TRUE)
     stub(.unlockYamlOverride, "read_yaml", list(redcapAPI=list(keys=list(TestRedcapAPI=TRUE))))
 
-    expect_error(.unlockYamlOverride("TestRedcapAPI", list(function(...) TRUE), service='redcapAPI'),
+    expect_error(.unlockYamlOverride("TestRedcapAPI", list(function(...) TRUE), yaml_tag='redcapAPI'),
                  "invalid entry")
   }
 )
