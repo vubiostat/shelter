@@ -12,7 +12,7 @@ test_that(
 
     stub(.unlockAlgorithm, ".unlockKeyring", TRUE)
     stub(.unlockAlgorithm, "key_list",
-         data.frame(service="redcapAPI", username="Nadda"))
+         data.frame(username="Nadda"))
     stub(.unlockAlgorithm, "key_set", m)
 
     calls <- 0

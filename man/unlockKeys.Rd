@@ -10,7 +10,7 @@ unlockKeys(
   connectFUN = NULL,
   envir = NULL,
   passwordFUN = .default_pass(),
-  service = "shelter",
+  yaml_tag = "shelter",
   ...
 )
 }
@@ -39,7 +39,8 @@ global environment. Will accept a number such a '1' for global as well.}
 \item{passwordFUN}{function. Function to get the password for the keyring. Usually defaults `getPass::getPass`.
 On MacOS it will use rstudioapi::askForPassword if available.}
 
-\item{service}{character(1). The keyring service. Defaults to package name.}
+\item{yaml_tag}{character(1). Only used as an identifier in yaml override files.
+Defaults to package name `shelter`.}
 
 \item{\dots}{Additional arguments passed to `connectFUN()`.}
 }

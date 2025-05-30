@@ -101,16 +101,16 @@
 ##
 #' @importFrom yaml read_yaml
 #' @importFrom utils modifyList
-.unlockYamlOverride <- function(connections, connectionFUNs, service, ...)
+.unlockYamlOverride <- function(connections, connectionFUNs, yaml_tag, ...)
 {
   config_file <- file.path("..", paste0(basename(getwd()),".yml"))
 
   if(!file.exists(config_file)) return(list())
 
   config <- read_yaml(config_file)
-  if(is.null(config[[service]])) stop(paste0("Config file '",config_file,"' does not contain required '",service,"' entry"))
-  config <- config[[service]]
-  if(is.null(config$keys))      stop(paste0("Config file '",config_file,"' does not contain required 'keys' entry under the '", service, "' entry"))
+  if(is.null(config[[yaml_tag]])) stop(paste0("Config file '",config_file,"' does not contain required '",yaml_tag,"' entry"))
+  config <- config[[yaml_tag]]
+  if(is.null(config$keys))      stop(paste0("Config file '",config_file,"' does not contain required 'keys' entry under the '", yaml_tag, "' entry"))
   keys   <- config$keys
 
   args <- list(...)
@@ -125,11 +125,11 @@
     key  <- keys[[conn]]
 
     if(is.null(key) || length(key)==0)
-      stop(paste0("Config file '", config_file, "' does not have API_KEY for '", conn,"' under '", service, ": keys:' specified."))
+      stop(paste0("Config file '", config_file, "' does not have API_KEY for '", conn,"' under '", yaml_tag, ": keys:' specified."))
     if(!is.character(key))
-      stop(paste0("Config file '", config_file, "' invalid entry for '", conn,"' under '", service, ": keys:'."))
+      stop(paste0("Config file '", config_file, "' invalid entry for '", conn,"' under '", yaml_tag, ": keys:'."))
     if(length(key) > 1)
-      stop(paste0("Config file '", config_file, "' has too may key entries for '", conn,"' under '",service,": keys:' specified."))
+      stop(paste0("Config file '", config_file, "' has too may key entries for '", conn,"' under '",yaml_tag,": keys:' specified."))
     do.call(connectionFUNs[[i]], modifyList(list(key=key), args))
   })
   names(dest) <- if(is.null(names(connections))) connections else names(connections)
@@ -241,13 +241,13 @@
     keyring,
     envir,
     passwordFUN,
-    service='shelter',
+    yaml_tag='shelter',
     ...)
 {
   if(is.numeric(envir)) envir <- as.environment(envir)
 
   # Use YAML config if it exists
-  dest <- .unlockYamlOverride(connections, connectionFUNs, service, ...)
+  dest <- .unlockYamlOverride(connections, connectionFUNs, yaml_tag, ...)
   if(length(dest) > 0)
     return(if(is.null(envir)) dest else list2env(dest, envir=envir))
 
@@ -370,7 +370,8 @@
 #'          and not test the connection this would work `function(x, ...) x`, but
 #'          be aware that if the key is invalid it will not query the user as
 #'          the validity is not tested.
-#' @param service character(1). The keyring service. Defaults to package name.
+#' @param yaml_tag character(1). Only used as an identifier in yaml override files.
+#'          Defaults to package name `shelter`.
 #' @param \dots Additional arguments passed to `connectFUN()`.
 #' @return If `envir` is NULL returns a list of opened connections. Otherwise
 #'         connections are assigned into the specified `envir`.
@@ -395,7 +396,7 @@ unlockKeys <- function(connections,
                        connectFUN  = NULL,
                        envir       = NULL,
                        passwordFUN = .default_pass(),
-                       service     = 'shelter',
+                       yaml_tag    = 'shelter',
                        ...)
 {
    ###########################################################################
@@ -432,7 +433,7 @@ unlockKeys <- function(connections,
                    keyring,
                    envir,
                    passwordFUN,
-                   service=service,
+                   yaml_tag=yaml_tag,
                    ...)
 }
 

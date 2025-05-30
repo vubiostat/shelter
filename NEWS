@@ -1,3 +1,8 @@
+## 0.2.1
+
+* Change 'service' argument to 'yaml_tag' to be clear on usage and to further
+separate from keyring usage.
+
 ## 0.2.0
 
 * Added automatic conversion of older keyring package lockers. Note: If user
