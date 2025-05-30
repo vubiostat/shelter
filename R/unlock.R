@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2025 Vanderbilt University,
+# Copyright (C) 2021-2025 Vanderbilt University Medical Center,
 # Shawn Garbett, Cole Beck, Hui Wu, Benjamin Nutter, Savannah Obregon
 #
 # This program is free software: you can redistribute it and/or modify
@@ -17,11 +17,8 @@
   #############################################################################
  ## invisibly convert existing keyring lockers to new shelter
 ##
-## This function should be removed after 7/1/2026
-.build_a_bridge <- function(keyring, passwordFUN)
+.build_a_bridge <- function(keyring, passwordFUN, msg)
 {
-  msg   <- paste0("Please enter password to unlock API keyring '",keyring, "'.")
-
   # If a shelter ring exists no bridge is needed
   new_ring <- keyring_list()
   new_ring <- new_ring[new_ring$keyring==keyring,]
@@ -37,13 +34,8 @@
 
   password <- .getPWGlobalEnv()
 
-  locked <- old_ring$locked
-
-  # Cannot bridge forward if password is unknown and old keyring unlocked
-  # Fail silently -- forces user to create new crypto locker
-  if(is.null(password) && !locked) return(NULL)
-
   # Unlock old if locked
+  locked <- old_ring$locked
   while(locked)
   {
     password <- .getPWGlobalEnv()
@@ -68,22 +60,16 @@
 
   # Gather old keys
   old_names <- keyring::key_list("redcapAPI", keyring)$username
+  old_keys  <- lapply(old_names, function(x) keyring::key_get("redcapAPI", x, keyring))
+  names(old_keys) <- old_names
 
-  # If there are any, then roll forward to new method
-  if(length(old_names) > 0)
-  {
-    old_keys  <- lapply(old_names, function(x) keyring::key_get("redcapAPI", x, keyring))
-    names(old_keys) <- old_names
-
-    # Store in new shelter
-    # NOTE: This evades normal functional calls to shelter because
-    #       password may not meet current standards. May break
-    #       if internal key storage method in package is changed.
-    shelter_env[[keyring]] <- keyring_store(keyring,
-                                            list(password=password,
-                                            key_pairs=old_keys))
-    message("Upgraded existing `keyring` package keyring to `shelter` keyring.")
-  }
+  # Store in new shelter
+  # NOTE: This evades normal functional calls to shelter because
+  #       password may not meet current standards. May break
+  #       if internal key storage method in package is changed.
+  shelter_env[[keyring]] <- keyring_store(keyring,
+                                          list(password=password,
+                                               key_pairs=old_keys))
 }
 
 .savePWGlobalEnv <- function(password)
@@ -180,7 +166,7 @@
 {
   msg   <- paste0("Please enter password to unlock API keyring '",keyring, "'.")
 
-  .build_a_bridge(keyring, passwordFUN) # Convert old keyring to new
+  .build_a_bridge(keyring, passwordFUN, msg) # Convert old keyring to new
 
   state <- keyring_list()
   state <- state[state$keyring==keyring,]
@@ -373,7 +359,7 @@
 #' @param envir environment. The target environment for the connections. Defaults to NULL
 #'          which returns the keys as a list. Use [globalenv()] to assign in the
 #'          global environment. Will accept a number such a '1' for global as well.
-#' @param keyring character. Potential keyring, not used by default.
+#' @param keyring character(1). Name of keyring.
 #' @param passwordFUN function. Function to get the password for the keyring. Usually defaults `getPass::getPass`.
 #'          On MacOS it will use rstudioapi::askForPassword if available.
 #' @param connectFUN function or list(function). A function that takes a key and returns a connection.

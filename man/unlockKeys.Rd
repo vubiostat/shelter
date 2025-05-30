@@ -21,7 +21,7 @@ name should correspond to a REDCap project for traceability, but
 it can be named anything one desires.
 The name in the returned list is this name.}
 
-\item{keyring}{character. Potential keyring, not used by default.}
+\item{keyring}{character(1). Name of keyring.}
 
 \item{connectFUN}{function or list(function). A function that takes a key and returns a connection.
 the function should call `stop` if the key is invalid in some manner. The
