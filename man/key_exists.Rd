@@ -12,7 +12,7 @@ key_exists(keyring, key)
 \item{key}{character(1); Name of key}
 }
 \value{
-logical(1); Existance of key in keyring
+logical(1); Existence of key in keyring
 }
 \description{
 In an unlocked keyring return if a key exists.
