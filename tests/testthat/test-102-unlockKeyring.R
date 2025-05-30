@@ -15,7 +15,7 @@ test_that(
     calls <- 0
     passwordFUN <- function(...) {calls <<- calls + 1}
 
-    .unlockKeyring("API_KEYs", passwordFUN)
+    .unlockKeyring("API_KEYs", passwordFUN, 3)
 
     expect_true(calls == 0) # No requests for password from user
     expect_true(Sys.getenv("SHELTER_PW") == "xyz")
@@ -35,7 +35,7 @@ test_that(
     calls <- 0
     passwordFUN <- function(...) {calls <<- calls + 1; "xyz"}
 
-    .unlockKeyring("API_KEYs", passwordFUN)
+    .unlockKeyring("API_KEYs", passwordFUN, 3)
 
     expect_true(calls == 1) # Requests password
     expect_true(Sys.getenv('SHELTER_PW') == "xyz")
@@ -55,7 +55,7 @@ test_that(
     calls <- 0
     passwordFUN <- function(...) {calls <<- calls + 1; ""}
 
-    expect_error(.unlockKeyring("API_KEYs", passwordFUN), "User aborted keyring")
+    expect_error(.unlockKeyring("API_KEYs", passwordFUN, 3), "User aborted keyring")
 
     expect_true(calls == 1) # Requests password
   }
@@ -76,7 +76,7 @@ test_that(
     calls <- 0
     passwordFUN <- function(...) {calls <<- calls + 1; "xyz"}
 
-    .unlockKeyring("API_KEYs", passwordFUN)
+    .unlockKeyring("API_KEYs", passwordFUN, 3)
 
     expect_true(calls == 1) # Requests password
     expect_true(Sys.getenv("SHELTER_PW") == "xyz")
@@ -97,7 +97,7 @@ test_that(
     stub(.unlockKeyring, "keyring_create", m)
     stub(.unlockKeyring, "keyring_list", ukr)
 
-    .unlockKeyring("MakeMe", passwordFUN)
+    .unlockKeyring("MakeMe", passwordFUN, 3)
 
     expect_call(m, 1, keyring_create(keyring,password))
     expect_equal(mock_args(m)[[1]], list("MakeMe", "xyz%$xyz"))
@@ -130,5 +130,24 @@ test_that(
 
     expect_true(calls == 1) # Asks user for password
     expect_true(Sys.getenv("SHELTER_PW") == "") # Nothing Stored
+  }
+)
+
+test_that(
+  ".unlockKeyring asks user for password and aborts when they exceed maximum attempts",
+  {
+    stub(.unlockKeyring, "keyring_list",
+         data.frame(keyring=c("Elsewhere", "API_KEYs", "JoesGarage"),
+                    num_secrets=0:2,
+                    locked=rep(TRUE, 3)))
+    stub(.unlockKeyring, ".getPWGlobalEnv", "")
+    stub(.unlockKeyring, "keyring_unlock", FALSE)
+
+    calls <- 0
+    passwordFUN <- function(...) { calls <<- calls + 1; "WRONG" }
+
+    expect_error(.unlockKeyring("API_KEYs", passwordFUN, 3), "Maximum password entry attempts exceeded")
+
+    expect_true(calls == 3) # Requests password
   }
 )

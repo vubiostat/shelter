@@ -11,6 +11,7 @@ unlockKeys(
   envir = NULL,
   passwordFUN = .default_pass(),
   yaml_tag = "shelter",
+  max_attempts = 3,
   ...
 )
 }
@@ -41,6 +42,8 @@ On MacOS it will use rstudioapi::askForPassword if available.}
 
 \item{yaml_tag}{character(1). Only used as an identifier in yaml override files.
 Defaults to package name `shelter`.}
+
+\item{max_attempts}{numeric(1).}
 
 \item{\dots}{Additional arguments passed to `connectFUN()`.}
 }

@@ -67,3 +67,21 @@ test_that(
   }
 )
 
+test_that(
+  "unlockKeys validates arguments properly",
+  {
+    stubby <- function(key, ...) TRUE
+    expect_error(unlockKeys("Test", TRUE, stubby),
+                 "Variable 'keyring': Must be of type 'string'")
+
+    expect_error(unlockKeys("Test", rep("joe",2), stubby), "Variable 'keyring': Must have length 1")
+    expect_error(unlockKeys("Test", NULL, stubby), "Variable 'keyring': Must be of type 'string'")
+
+    expect_error(unlockKeys(123, "shelter", stubby), "Variable 'connections': Must be of type 'character'")
+    expect_error(unlockKeys("test", "shelter", stubby, envir=TRUE), "Variable 'envir': Must inherit from class 'environment'")
+    expect_error(unlockKeys("test", "shelter", TRUE), "Variable 'connectFUN': Must be a function")
+    expect_error(unlockKeys("test", "shelter", stubby, passwordFUN=FALSE), "Variable 'passwordFUN': Must be a function")
+    expect_error(unlockKeys("test", "shelter", stubby, max_attempts=FALSE), "Variable 'max_attempts': Must be of type 'numeric'")
+  }
+)
+
