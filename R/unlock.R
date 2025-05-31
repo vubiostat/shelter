@@ -81,13 +81,15 @@
     #       if internal key storage method in package is changed.
     shelter_env[[keyring]] <- keyring_store(keyring,
                                             list(password=password,
-                                            key_pairs=old_keys))
+                                                 key_pairs=old_keys))
     message("Upgraded existing `keyring` package keyring to `shelter` keyring.")
   }
 }
 
 .savePWGlobalEnv <- function(password)
 {
+  if(!getOption('shelter.save.env', TRUE)) return(NULL)
+
   Sys.setenv(SHELTER_PW=password)
 
   # Hacked work around for RStudio starting new session for everything
@@ -176,7 +178,7 @@
   #############################################################################
  ## unlock keyring
 ##
-.unlockKeyring <- function(keyring, passwordFUN)
+.unlockKeyring <- function(keyring, passwordFUN, max_attempts)
 {
   msg   <- paste0("Please enter password to unlock API keyring '",keyring, "'.")
 
@@ -186,15 +188,22 @@
   state <- state[state$keyring==keyring,]
 
   # If so, does it exist?
+  attempts <- 0
   if(nrow(state) == 1) # Exists => UNLOCK
   {
     locked <- state$locked
     # Is it locked
     while(locked)
     {
+      if(attempts >= max_attempts) stop("Maximum password entry attempts exceeded.")
+
       password <- .getPWGlobalEnv()
       stored   <- !is.null(password) && password != ''
-      if(!stored) password <- passwordFUN(msg)
+      if(!stored)
+      {
+        password <- passwordFUN(msg)
+        attempts <- attempts + 1
+      }
       if(is.null(password) || password == '') stop(paste0("User aborted keyring '",keyring, "' unlock."))
 
       if(keyring_unlock(keyring, password))
@@ -256,6 +265,7 @@
     envir,
     passwordFUN,
     yaml_tag='shelter',
+    max_attempts,
     ...)
 {
   if(is.numeric(envir)) envir <- as.environment(envir)
@@ -271,7 +281,7 @@
     return(if(is.null(envir)) dest else list2env(dest, envir=envir))
 
   # Proceed to unlock the local keyring
-  .unlockKeyring(keyring, passwordFUN)
+  .unlockKeyring(keyring, passwordFUN, max_attempts)
 
   # Open Connections
   dest <- lapply(seq_along(connections), function(i)
@@ -321,33 +331,13 @@
 #' Opens a set of connections  from API keys stored in an encrypted keyring.
 #' If the keyring does not exist, it will ask for password to this keyring to use on
 #' later requests. Next it
-#' will ask for the API keyss specified in `connections`. If an API key does not
+#' will ask for the API keys specified in `connections`. If an API key does not
 #' work, it will request again. On later executions it will use an open keyring
 #' to retrieve all API_KEYs or for a password if the keyring is currently
 #' locked.
 #'
 #' If one forgets the password to this keyring, or wishes to start over:
 #' `keyring_delete("<NAME_OF_KEY_RING_HERE>")`
-#'
-#' For production servers where the password must be stored in a readable
-#' plain text file, it will search for `../<basename>.yml`. DO NOT USE
-#' this unless one is a sysadmin on a production hardened system, as this defeats the security and purpose of
-#' a local encrypted file. The expected structure of this yaml file is
-#' as follows:
-#'
-#' \preformatted{
-#' other-config-stuff1: blah blah
-#' shelter:
-#'   keys:
-#'     intake: THIS_IS_THE_INTAKE_DATABASE_APIKEY
-#'     details: THIS_IS_THE_DETAILS_DATABASE_APIKEY
-#' other-config-stuff2: blah blah
-#' other-config-stuff3: blah blah
-#' }
-#'
-#' For production servers the use of ENV variables is also supported. The connection
-#' string is converted to upper case for the search of ENV. If a YAML file
-#' and ENV definitions both exist, the YAML will take precedence.
 #'
 #' IMPORTANT: Make sure that R is set to NEVER save workspace to .RData
 #' as this *is* writing the API_KEY to a local file in clear text because
@@ -365,6 +355,37 @@
 #' lockBinding(oldfun, pkgenv)
 #' }
 #'
+#' It will store the provided password in the shell environment.
+#' This can sometimes end up with the password set command appearing in the
+#' console when using RStudio. If one wishes this to not happen and/or
+#' for it to always query for the password this can be done using:
+#' `options(shelter.save.env=FALSE)` to turn off the password saving
+#' behavior for an R session. Note: this will not clear a password
+#' that already exists in a given shell environment.
+#'
+#' For production servers where the secrets must be stored in a readable
+#' plain text file, it will search for `../<basename>.yml`. DO NOT USE
+#' this unless one is a sysadmin on a production hardened system,
+#' as this defeats the security and purpose of
+#' a local encrypted file (the point of using this package).
+#'
+#' The expected structure of this yaml file is
+#' as follows:
+#'
+#' \preformatted{
+#' other-config-stuff1: blah blah
+#' shelter:
+#'   keys:
+#'     intake: THIS_IS_THE_INTAKE_DATABASE_APIKEY
+#'     details: THIS_IS_THE_DETAILS_DATABASE_APIKEY
+#' other-config-stuff2: blah blah
+#' other-config-stuff3: blah blah
+#' }
+#'
+#' For production servers the use of ENV variables is also supported. The connection
+#' string is converted to upper case for the search of ENV. If a YAML file
+#' and ENV definitions both exist, the YAML will take precedence.
+#'
 #' @param connections character vector. A list of strings that define the
 #'          connections with associated API_KEYs to load into environment. Each
 #'          name should correspond to a REDCap project for traceability, but
@@ -373,7 +394,7 @@
 #' @param envir environment. The target environment for the connections. Defaults to NULL
 #'          which returns the keys as a list. Use [globalenv()] to assign in the
 #'          global environment. Will accept a number such a '1' for global as well.
-#' @param keyring character. Potential keyring, not used by default.
+#' @param keyring character(1). Name of keyring.
 #' @param passwordFUN function. Function to get the password for the keyring. Usually defaults `getPass::getPass`.
 #'          On MacOS it will use rstudioapi::askForPassword if available.
 #' @param connectFUN function or list(function). A function that takes a key and returns a connection.
@@ -386,6 +407,7 @@
 #'          the validity is not tested.
 #' @param yaml_tag character(1). Only used as an identifier in yaml override files.
 #'          Defaults to package name `shelter`.
+#' @param max_attempts numeric(1).
 #' @param \dots Additional arguments passed to `connectFUN()`.
 #' @return If `envir` is NULL returns a list of opened connections. Otherwise
 #'         connections are assigned into the specified `envir`.
@@ -400,17 +422,20 @@
 #' }
 #' @importFrom checkmate makeAssertCollection
 #' @importFrom checkmate assert_character
+#' @importFrom checkmate assert_string
 #' @importFrom checkmate assert_class
 #' @importFrom checkmate assert_list
 #' @importFrom checkmate assert_function
 #' @importFrom checkmate reportAssertions
+#' @importFrom checkmate assert_numeric
 #' @export
 unlockKeys <- function(connections,
                        keyring,
-                       connectFUN  = NULL,
-                       envir       = NULL,
-                       passwordFUN = .default_pass(),
-                       yaml_tag    = 'shelter',
+                       connectFUN   = NULL,
+                       envir        = NULL,
+                       passwordFUN  = .default_pass(),
+                       yaml_tag     = 'shelter',
+                       max_attempts = 3,
                        ...)
 {
    ###########################################################################
@@ -419,10 +444,11 @@ unlockKeys <- function(connections,
 
   if(is.numeric(envir)) envir <- as.environment(envir)
 
-  assert_character(x = keyring,      null.ok = FALSE, add = coll)
+  assert_string(   x = keyring,      null.ok = FALSE, add = coll)
   assert_character(x = connections,  null.ok = FALSE, add = coll)
   assert_function( x = passwordFUN,  null.ok = FALSE, add = coll)
   assert_class(    x = envir,        null.ok = TRUE,  add = coll, classes="environment")
+  assert_numeric(  x = max_attempts, null.ok = FALSE, add = coll, len=1)
   if(inherits(connectFUN, "list"))
   {
     assert_list(x=connectFUN, any.missing = FALSE, len=length(connections), add=coll, types="function")
@@ -448,6 +474,7 @@ unlockKeys <- function(connections,
                    envir,
                    passwordFUN,
                    yaml_tag=yaml_tag,
+                   max_attempts,
                    ...)
 }
 
