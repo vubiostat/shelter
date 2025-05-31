@@ -23,13 +23,15 @@
 #' restate, if you are developing on a personal laptop a report or code
 #' this function should NOT be used.
 #'
+#' For this reason the function is not exported.
+#'
 #' @param keyring character(1); Name of keyring.
 #' @param format character(1); One of 'yaml' or 'ENV'.
 #' @param yaml_tag character(1); Tag to use in 'yaml'. Defaults to 'shelter'
 #' @param warn boolean(1); Should the user be warned of the dangers. Defaults to TRUE.
 #' @examples
 #' \dontrun{
-#' cat(unsafe_export('mypersonalkeyring', 'yaml'), file="myproject.yml")
+#' cat(shelter:::unsafe_export('mypersonalkeyring', 'yaml'), file="myproject.yml")
 #' }
 #' @returns A character(1) string of the desired export.
 #' @importFrom checkmate assert_string
@@ -37,7 +39,6 @@
 #' @importFrom checkmate makeAssertCollection
 #' @importFrom checkmate reportAssertions
 #' @importFrom yaml as.yaml
-#' @export
 unsafe_export <- function(keyring, format, yaml_tag='shelter', warn=TRUE)
 {
   coll <- makeAssertCollection()
@@ -58,6 +59,6 @@ unsafe_export <- function(keyring, format, yaml_tag='shelter', warn=TRUE)
   {
     result <- list()
     result[[yaml_tag]] <- list(keys=as.list(keys))
-    as.yaml(result)
+    yaml::as.yaml(result)
   }
 }

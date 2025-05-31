@@ -27,9 +27,11 @@ WARNING: It is not recommended to use this function
 unless you are deploying to a hardened secured production environment. To
 restate, if you are developing on a personal laptop a report or code
 this function should NOT be used.
+
+For this reason the function is not exported.
 }
 \examples{
 \dontrun{
-cat(unsafe_export('mypersonalkeyring', 'yaml'), file="myproject.yml")
+cat(shelter:::unsafe_export('mypersonalkeyring', 'yaml'), file="myproject.yml")
 }
 }
