@@ -22,7 +22,7 @@
 #'
 #' @param keyring character(1); Name of keyring
 #' @param key character(1); Name of key
-#' @return logical(1); Existance of key in keyring
+#' @return logical(1); Existence of key in keyring
 #' @examples
 #' \dontrun{
 #' key_exists('mypersonalkeyring', 'key1')

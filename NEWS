@@ -1,7 +1,9 @@
 ## 0.2.1
 
-* Change 'service' argument to 'yaml_tag' to be clear on usage and to further
+* Changed 'service' argument to 'yaml_tag' to be clear on usage and to further
 separate from keyring usage.
+* Allowed prevention of password saving to env via `option('shelter.save.env')`.
+* Added helper functions for exporting keyring to production override formats.
 
 ## 0.2.0
 

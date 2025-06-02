@@ -11,6 +11,7 @@ unlockKeys(
   envir = NULL,
   passwordFUN = .default_pass(),
   yaml_tag = "shelter",
+  max_attempts = 3,
   ...
 )
 }
@@ -21,7 +22,7 @@ name should correspond to a REDCap project for traceability, but
 it can be named anything one desires.
 The name in the returned list is this name.}
 
-\item{keyring}{character. Potential keyring, not used by default.}
+\item{keyring}{character(1). Name of keyring.}
 
 \item{connectFUN}{function or list(function). A function that takes a key and returns a connection.
 the function should call `stop` if the key is invalid in some manner. The
@@ -42,6 +43,8 @@ On MacOS it will use rstudioapi::askForPassword if available.}
 \item{yaml_tag}{character(1). Only used as an identifier in yaml override files.
 Defaults to package name `shelter`.}
 
+\item{max_attempts}{numeric(1).}
+
 \item{\dots}{Additional arguments passed to `connectFUN()`.}
 }
 \value{
@@ -52,7 +55,7 @@ If `envir` is NULL returns a list of opened connections. Otherwise
 Opens a set of connections  from API keys stored in an encrypted keyring.
 If the keyring does not exist, it will ask for password to this keyring to use on
 later requests. Next it
-will ask for the API keyss specified in `connections`. If an API key does not
+will ask for the API keys specified in `connections`. If an API key does not
 work, it will request again. On later executions it will use an open keyring
 to retrieve all API_KEYs or for a password if the keyring is currently
 locked.
@@ -60,26 +63,6 @@ locked.
 \details{
 If one forgets the password to this keyring, or wishes to start over:
 `keyring_delete("<NAME_OF_KEY_RING_HERE>")`
-
-For production servers where the password must be stored in a readable
-plain text file, it will search for `../<basename>.yml`. DO NOT USE
-this unless one is a sysadmin on a production hardened system, as this defeats the security and purpose of
-a local encrypted file. The expected structure of this yaml file is
-as follows:
-
-\preformatted{
-other-config-stuff1: blah blah
-shelter:
-  keys:
-    intake: THIS_IS_THE_INTAKE_DATABASE_APIKEY
-    details: THIS_IS_THE_DETAILS_DATABASE_APIKEY
-other-config-stuff2: blah blah
-other-config-stuff3: blah blah
-}
-
-For production servers the use of ENV variables is also supported. The connection
-string is converted to upper case for the search of ENV. If a YAML file
-and ENV definitions both exist, the YAML will take precedence.
 
 IMPORTANT: Make sure that R is set to NEVER save workspace to .RData
 as this *is* writing the API_KEY to a local file in clear text because
@@ -96,6 +79,37 @@ utils::assignInNamespace(oldfun, newfun, ns = pkg, envir = pkgenv)
 assign(oldfun, newfun, pkgenv)
 lockBinding(oldfun, pkgenv)
 }
+
+It will store the provided password in the shell environment.
+This can sometimes end up with the password set command appearing in the
+console when using RStudio. If one wishes this to not happen and/or
+for it to always query for the password this can be done using:
+`options(shelter.save.env=FALSE)` to turn off the password saving
+behavior for an R session. Note: this will not clear a password
+that already exists in a given shell environment.
+
+For production servers where the secrets must be stored in a readable
+plain text file, it will search for `../<basename>.yml`. DO NOT USE
+this unless one is a sysadmin on a production hardened system,
+as this defeats the security and purpose of
+a local encrypted file (the point of using this package).
+
+The expected structure of this yaml file is
+as follows:
+
+\preformatted{
+other-config-stuff1: blah blah
+shelter:
+  keys:
+    intake: THIS_IS_THE_INTAKE_DATABASE_APIKEY
+    details: THIS_IS_THE_DETAILS_DATABASE_APIKEY
+other-config-stuff2: blah blah
+other-config-stuff3: blah blah
+}
+
+For production servers the use of ENV variables is also supported. The connection
+string is converted to upper case for the search of ENV. If a YAML file
+and ENV definitions both exist, the YAML will take precedence.
 }
 \examples{
 \dontrun{
