@@ -1,9 +1,10 @@
+# `shelter`
+
 ![](https://cranlogs.r-pkg.org/badges/grand-total/shelter)
 [![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 ![r-cmd-check.yml](https://github.com/vubiostat/shelter/actions/workflows/r-cmd-check.yml/badge.svg?branch=main)
 
-shelter
-=========
+## About
 
 `shelter` is an [R](https://www.r-project.org) package to simplify secure
 management of API keys or other secrets. The general goal is that the secure
@@ -64,6 +65,12 @@ Further making sure if one needs to store PHI/PII locally that is always stored 
 * Authentication: [Poly1305](https://en.wikipedia.org/wiki/Poly1305) MAC
 
 In 2013, Mouha and Preneel published a proof^[Nicky Mouha; Bart Preneel (2013). "_Towards Finding Optimal Differential Characteristics for ARX: Application to Salsa20_". International Association for Cryptologic Research.] that 15 rounds of Salsa20 was 128-bit secure against differential cryptoanalysis. It has no differential characteristic with higher probability than 2^−130, so differential cryptoanalysis would be more difficult than 128-bit key exhaustion.
+
+A brute force quantum attack would take 2^64 quantum computations under 
+[Grover's algorithm](https://en.wikipedia.org/wiki/Grover%27s_algorithm). If this
+[quantum computation took 10ns](https://crypto.stackexchange.com/questions/77000/is-128-bit-security-still-considered-strong-in-2020-within-the-context-of-both/77014#77014), it would still take over 8000 years to crack. This has led to the designation of being quantum secure.
+The [Bundesamt fur Sicherheit in der Informationstechnik \(BSI\)](https://www.bsi.bund.de/SharedDocs/Downloads/EN/BSI/Publications/TechGuidelines/TG02102/BSI-TR-02102-1.html) still recommends this
+as an acceptable key length.
 
 ## Quick Start Guide
 
