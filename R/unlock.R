@@ -156,14 +156,15 @@
  ## unlock via ENV override if it exists
 ##
 #' @importFrom utils modifyList
-.unlockENVOverride <- function(connections, connectionFUNs, ...)
+.unlockENVOverride <- function(connections, connectionFUNs, ENV_prefix, ...)
 {
-  api_key_ENV <- sapply(connections, function(x) Sys.getenv(toupper(x)))
+  api_key_ENV <- sapply(connections,
+                        function(x) Sys.getenv(toupper(paste0(ENV_prefix, x))))
 
   if(all(api_key_ENV == "")) return(list())
 
   if(any(api_key_ENV == ""))
-    stop(paste("Some matching ENV variables found but missing:",paste0(toupper(connections[api_key_ENV=='']), collapse=", ")))
+    stop(paste("Some matching ENV variables found but missing:", paste0(toupper(connections[api_key_ENV=='']), collapse=", ")))
 
   args <- list(...)
   dest <- lapply(seq_along(connections), function(i)
@@ -266,6 +267,7 @@
     passwordFUN,
     yaml_tag='shelter',
     max_attempts,
+    ENV_prefix,
     ...)
 {
   if(is.numeric(envir)) envir <- as.environment(envir)
@@ -276,7 +278,7 @@
     return(if(is.null(envir)) dest else list2env(dest, envir=envir))
 
   # Use ENV if it exists and YAML does not exist
-  dest <- .unlockENVOverride(connections, connectionFUNs, ...)
+  dest <- .unlockENVOverride(connections, connectionFUNs, ENV_prefix, ...)
   if(length(dest) > 0)
     return(if(is.null(envir)) dest else list2env(dest, envir=envir))
 
@@ -408,6 +410,9 @@
 #' @param yaml_tag character(1). Only used as an identifier in yaml override files.
 #'          Defaults to package name `shelter`.
 #' @param max_attempts numeric(1).
+#' @param ENV_prefix character(1). A prefix prepended to connection names when
+#'          searching for ENV variables containing keys. This helps prevent and
+#'          controls name collisions. Defaults to "SHELTER_".
 #' @param \dots Additional arguments passed to `connectFUN()`.
 #' @return If `envir` is NULL returns a list of opened connections. Otherwise
 #'         connections are assigned into the specified `envir`.
@@ -436,6 +441,7 @@ unlockKeys <- function(connections,
                        passwordFUN  = .default_pass(),
                        yaml_tag     = 'shelter',
                        max_attempts = 3,
+                       ENV_prefix   = "SHELTER_",
                        ...)
 {
    ###########################################################################
@@ -449,6 +455,7 @@ unlockKeys <- function(connections,
   assert_function( x = passwordFUN,  null.ok = FALSE, add = coll)
   assert_class(    x = envir,        null.ok = TRUE,  add = coll, classes="environment")
   assert_numeric(  x = max_attempts, null.ok = FALSE, add = coll, len=1)
+  assert_string(   x = ENV_prefix,   null.ok = FALSE, add = coll)
   if(inherits(connectFUN, "list"))
   {
     assert_list(x=connectFUN, any.missing = FALSE, len=length(connections), add=coll, types="function")
@@ -475,6 +482,7 @@ unlockKeys <- function(connections,
                    passwordFUN,
                    yaml_tag=yaml_tag,
                    max_attempts,
+                   ENV_prefix,
                    ...)
 }
 

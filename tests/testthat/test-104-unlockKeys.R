@@ -82,6 +82,7 @@ test_that(
     expect_error(unlockKeys("test", "shelter", TRUE), "Variable 'connectFUN': Must be a function")
     expect_error(unlockKeys("test", "shelter", stubby, passwordFUN=FALSE), "Variable 'passwordFUN': Must be a function")
     expect_error(unlockKeys("test", "shelter", stubby, max_attempts=FALSE), "Variable 'max_attempts': Must be of type 'numeric'")
+    expect_error(unlockKeys("test", "shelter", ENV_prefix=1:3), "Variable 'ENV_prefix': Must be of type 'string'")
   }
 )
 
