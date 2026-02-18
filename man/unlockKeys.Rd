@@ -12,6 +12,7 @@ unlockKeys(
   passwordFUN = .default_pass(),
   yaml_tag = "shelter",
   max_attempts = 3,
+  ENV_prefix = "SHELTER_",
   ...
 )
 }
@@ -44,6 +45,10 @@ On MacOS it will use rstudioapi::askForPassword if available.}
 Defaults to package name `shelter`.}
 
 \item{max_attempts}{numeric(1).}
+
+\item{ENV_prefix}{character(1). A prefix prepended to connection names when
+searching for ENV variables containing keys. This helps prevent and
+controls name collisions. Defaults to "SHELTER_".}
 
 \item{\dots}{Additional arguments passed to `connectFUN()`.}
 }
