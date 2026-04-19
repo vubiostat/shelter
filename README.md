@@ -45,7 +45,7 @@ In RStudio, look under `Tools -> Global Options -> General` and make sure save i
 
 For base R the following can be ensured using `usethis::edit_r_profile()` and adding this code:
 
-```
+```r
 newfun <- function (save = "no", status = 0, runLast = TRUE)
   .Internal(quit(save, status, runLast))
 pkg <- 'base'
@@ -77,7 +77,7 @@ as an acceptable key length.
 One simply needs to include the library and specify a connection function. Here
 is an example that works with splunk and [redcapAPI](https://github.com/vubiostat/redcapAPI).
 
-```
+```r
 library(shelter)
 
 ###########################################################
